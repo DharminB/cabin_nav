@@ -34,3 +34,9 @@ roslaunch cabin_nav cabin_navigator.launch
     ```sh
     rostopic pub /cabin_navigator/task_request std_msgs/String "data: '{task_type: goto, goal: {x: 62.7, y: 31.7, theta: 3.14}}'" -1
     ```
+
+### Test
+
+```sh
+catkin build --this --catkin-make-args run_tests -- && rosrun cabin_nav cabin_nav_test
+```
