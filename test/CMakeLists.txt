@@ -1,10 +1,10 @@
-catkin_add_gtest(mpc_navigation_test
+catkin_add_gtest(cabin_nav_test
     main.cpp
     trajectory_point_test.cpp
     model_test.cpp
     optimiser_test.cpp
 )
-target_link_libraries(mpc_navigation_test
+target_link_libraries(cabin_nav_test
     ${catkin_LIBRARIES}
     mpc
     utilities

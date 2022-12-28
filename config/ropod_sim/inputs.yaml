@@ -1,6 +1,6 @@
 semantic_map:
     type: "SEMANTIC_MAP"
-    pkg_name: "mpc_navigation"
+    pkg_name: "cabin_nav"
     relative_file_path: "semantic_maps/brsu.yaml"
     always_active: true
 

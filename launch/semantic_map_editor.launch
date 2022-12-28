@@ -11,16 +11,16 @@
     <!-- map server -->
     <node pkg="map_server" type="map_server" name="semantic_map_editor_map_server" args="$(arg map_file)" />
 
-    <node pkg="mpc_navigation" type="semantic_map_editor"
+    <node pkg="cabin_nav" type="semantic_map_editor"
           name="semantic_map_editor" output="screen" required="true">
         <param name="semantic_map_file" type="string"
-               value="$(find mpc_navigation)/semantic_maps/$(arg world_model_name).yaml" />
+               value="$(find cabin_nav)/semantic_maps/$(arg world_model_name).yaml" />
     </node>
 
     <group if="$(arg start_rviz)">
         <!-- rviz for visualisation -->
         <node pkg="rviz" type="rviz" name="semantic_map_rviz"
-              args="-d $(find mpc_navigation)/rviz/semantic_map_editor.rviz" />
+              args="-d $(find cabin_nav)/rviz/semantic_map_editor.rviz" />
     </group>
 
 </launch>
