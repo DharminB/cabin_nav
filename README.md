@@ -4,8 +4,8 @@ Context Aware Behavior-based INdoor NAVigation
 
 ## Dependency
 
-- [geometry\_common](https://git.locomotec.com:444/kelo/common/geometry_common)
-- [yaml\_common](https://git.locomotec.com:444/kelo/common/yaml_common)
+- [geometry\_common](https://github.com/kelo-robotics/geometry_common)
+- [yaml\_common](https://github.com/kelo-robotics/yaml_common)
 - For simulation [ropod\_sim](https://github.com/DharminB/ropod_sim)(optional)
 
 On Ubuntu 20.04 with ROS Noetic, install the package `python-is-python3` using the below command to avoid runtime errors when launching python-based ROS nodes 
