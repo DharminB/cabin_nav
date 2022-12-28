@@ -1,0 +1,43 @@
+semantic_map:
+    type: "SEMANTIC_MAP"
+    pkg_name: "mpc_navigation"
+    relative_file_path: "semantic_maps/brsu.yaml"
+    always_active: true
+
+velocity:
+    type: "VELOCITY"
+    cmd_vel_topic: "/ropod/cmd_vel"
+    odom_topic: "/ropod/odom"
+    tolerance: {x: 0.1, y: 0.1, theta: 0.25}
+    always_active: true
+
+localisation:
+    type: "LOCALISATION"
+    robot_frame: "/ropod/base_link"
+    global_frame: "map"
+    always_active: true
+
+laser:
+    type: "LASER"
+    topic: "/ropod/scan"
+    robot_frame: "/ropod/base_link"
+
+joypad:
+    type: "JOYPAD"
+    topic: "/joy"
+    always_active: true
+
+front_rs:
+    type: "IMG"
+    topic: "/ropod/realsense_front_camera/color/image_raw"
+    camera_info_topic: "/ropod/realsense_front_camera/color/camera_info"
+    robot_frame: "/ropod/base_link"
+
+torso_rs:
+    type: "POINTCLOUD"
+    topic: "/ropod/realsense_torso_camera/depth_registered/points"
+    robot_frame: "/ropod/base_link"
+
+occ_grid_map:
+    type: "OCCUPANCY_GRID_MAP"
+    topic: "/map"

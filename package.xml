@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>cabin_nav</name>
+    <version>1.0.0</version>
+    <description>Context Aware Behavior-based INdoor NAVigation</description>
+
+    <author email="dharmingeo@gmail.com">Dharmin B.</author>
+
+    <maintainer email="dharmingeo@gmail.com">Dharmin B.</maintainer>
+
+    <license>MIT</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <depend>tf</depend>
+    <depend>rospy</depend>
+    <depend>roscpp</depend>
+    <depend>std_msgs</depend>
+    <depend>sensor_msgs</depend>
+    <depend>geometry_msgs</depend>
+    <depend>visualization_msgs</depend>
+    <depend>cv_bridge</depend>
+    <depend>roslib</depend>
+    <depend>interactive_markers</depend>
+    <depend>geometry_common</depend>
+    <depend>yaml_common</depend>
+
+</package>

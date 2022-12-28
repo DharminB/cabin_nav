@@ -1,0 +1,287 @@
+areas:
+  - name: C022
+    type: room
+    polygon:
+      - {x: 63.644, y: 29.649}
+      - {x: 63.530, y: 22.706}
+      - {x: 56.375, y: 22.823}
+      - {x: 56.477, y: 29.865}
+  - name: C025
+    type: room
+    polygon:
+      - {x: 56.680, y: 33.938}
+      - {x: 56.844, y: 40.842}
+      - {x: 63.959, y: 40.612}
+      - {x: 63.812, y: 33.695}
+  - name: C1
+    type: corridor
+    polygon:
+      - {x: 54.342, y: 30.176}
+      - {x: 53.543, y: 33.737}
+      - {x: 63.884, y: 33.523}
+      - {x: 63.624, y: 29.897}
+  - name: C10
+    type: corridor
+    polygon:
+      - {x: 45.831, y: 65.919}
+      - {x: 45.086, y: 68.301}
+      - {x: 49.182, y: 69.487}
+      - {x: 64.525, y: 68.953}
+      - {x: 64.585, y: 65.463}
+  - name: C11
+    type: corridor
+    polygon:
+      - {x: 45.427, y: 65.704}
+      - {x: 46.986, y: 59.789}
+      - {x: 44.024, y: 59.148}
+      - {x: 42.551, y: 65.719}
+  - name: C12
+    type: corridor
+    polygon:
+      - {x: 46.661, y: 59.518}
+      - {x: 51.189, y: 40.731}
+      - {x: 49.006, y: 40.252}
+      - {x: 44.397, y: 59.022}
+  - name: C17
+    type: corridor
+    polygon:
+      - {x: 4.310, y: 31.964}
+      - {x: 4.121, y: 24.403}
+      - {x: -0.770, y: 24.491}
+      - {x: -0.532, y: 32.025}
+  - name: C2
+    type: corridor
+    polygon:
+      - {x: 53.998, y: 29.857}
+      - {x: 55.675, y: 23.962}
+      - {x: 52.771, y: 23.308}
+      - {x: 50.928, y: 30.897}
+  - name: C3
+    type: corridor
+    polygon:
+      - {x: 50.169, y: 34.168}
+      - {x: 48.690, y: 40.070}
+      - {x: 51.608, y: 40.650}
+      - {x: 53.010, y: 34.125}
+  - name: C4
+    type: corridor
+    polygon:
+      - {x: 49.868, y: 33.870}
+      - {x: 50.389, y: 31.327}
+      - {x: 4.821, y: 32.465}
+      - {x: 4.856, y: 34.960}
+  - name: C5
+    type: corridor
+    polygon:
+      - {x: -0.282, y: 41.803}
+      - {x: 4.524, y: 41.765}
+      - {x: 4.378, y: 35.372}
+      - {x: -0.474, y: 35.526}
+  - name: C6
+    type: corridor
+    polygon:
+      - {x: 5.150, y: 66.635}
+      - {x: 4.990, y: 59.868}
+      - {x: 0.197, y: 60.035}
+      - {x: 0.317, y: 66.790}
+  - name: C7
+    type: corridor
+    polygon:
+      - {x: 5.231, y: 69.784}
+      - {x: 0.394, y: 69.927}
+      - {x: 0.630, y: 77.353}
+      - {x: 5.398, y: 77.273}
+  - name: C8
+    type: corridor
+    polygon:
+      - {x: 5.619, y: 69.473}
+      - {x: 41.434, y: 68.596}
+      - {x: 42.109, y: 66.090}
+      - {x: 5.618, y: 66.942}
+  - name: C9
+    type: corridor
+    polygon:
+      - {x: 42.857, y: 76.610}
+      - {x: 44.778, y: 68.644}
+      - {x: 41.771, y: 68.993}
+      - {x: 40.129, y: 75.974}
+  - name: DoorC022
+    type: door
+    polygon:
+      - {x: 59.974, y: 29.990}
+      - {x: 58.929, y: 30.019}
+  - name: DoorC025
+    type: door
+    polygon:
+      - {x: 60.079, y: 33.620}
+      - {x: 58.989, y: 33.639}
+  - name: DoorCBuilding
+    type: door
+    polygon:
+      - {x: 2.829, y: 24.050}
+      - {x: 0.639, y: 24.127}
+  - name: Foosball
+    type: open_area
+    polygon:
+      - {x: -72.032, y: 2.897}
+      - {x: -72.032, y: -1.142}
+      - {x: -81.836, y: -0.999}
+      - {x: -81.791, y: 3.199}
+  - name: HSS1
+    type: open_area
+    polygon:
+      - {x: -15.286, y: 10.045}
+      - {x: -15.381, y: 1.799}
+      - {x: -37.541, y: 2.389}
+      - {x: -37.327, y: 10.535}
+  - name: HSS2
+    type: open_area
+    polygon:
+      - {x: -37.890, y: 2.423}
+      - {x: -71.769, y: 3.147}
+      - {x: -74.514, y: 8.656}
+      - {x: -59.300, y: 16.733}
+      - {x: -37.455, y: 19.936}
+  - name: HSS3
+    type: open_area
+    polygon:
+      - {x: -72.058, y: 3.157}
+      - {x: -81.814, y: 3.439}
+      - {x: -81.861, y: 11.649}
+      - {x: -76.194, y: 11.525}
+  - name: HSS4
+    type: open_area
+    polygon:
+      - {x: -82.139, y: 3.427}
+      - {x: -100.952, y: 3.811}
+      - {x: -100.686, y: 12.112}
+      - {x: -82.191, y: 11.653}
+  - name: J1
+    type: junction
+    polygon:
+      - {x: 50.210, y: 33.847}
+      - {x: 53.158, y: 33.761}
+      - {x: 54.000, y: 30.199}
+      - {x: 50.811, y: 31.345}
+  - name: J2
+    type: junction
+    polygon:
+      - {x: -0.474, y: 35.022}
+      - {x: 4.343, y: 34.943}
+      - {x: 4.313, y: 32.449}
+      - {x: -0.451, y: 32.521}
+  - name: J3
+    type: junction
+    polygon:
+      - {x: 41.835, y: 68.663}
+      - {x: 44.817, y: 68.344}
+      - {x: 45.408, y: 65.963}
+      - {x: 42.449, y: 66.053}
+  - name: J4
+    type: junction
+    polygon:
+      - {x: 5.201, y: 69.479}
+      - {x: 5.154, y: 67.000}
+      - {x: 0.330, y: 67.202}
+      - {x: 0.362, y: 69.494}
+  - name: Reception
+    type: open_area
+    polygon:
+      - {x: 4.158, y: 23.735}
+      - {x: -7.579, y: 23.887}
+      - {x: -14.894, y: 15.254}
+      - {x: -14.914, y: 1.809}
+      - {x: 3.503, y: 1.606}
+  - name: StudyArea1
+    type: area
+    polygon:
+      - {x: 44.024, y: 71.987}
+      - {x: 49.217, y: 71.852}
+      - {x: 49.140, y: 68.220}
+      - {x: 45.046, y: 68.539}
+  - name: StudyArea2
+    type: area
+    polygon:
+      - {x: -7.316, y: 42.420}
+      - {x: -6.941, y: 56.498}
+      - {x: -2.120, y: 59.966}
+      - {x: 8.608, y: 59.717}
+      - {x: 8.168, y: 42.090}
+  - name: StudyArea3
+    type: area
+    polygon:
+      - {x: 0.107, y: 69.523}
+      - {x: 0.024, y: 67.206}
+      - {x: -6.639, y: 67.281}
+      - {x: -6.564, y: 69.601}
+connections:
+  - {area_1: C1, area_2: J1}
+  - {area_1: C2, area_2: J1}
+  - {area_1: C3, area_2: J1}
+  - {area_1: C4, area_2: J1}
+  - {area_1: C1, area_2: DoorC022}
+  - {area_1: DoorC022, area_2: C022}
+  - {area_1: DoorC025, area_2: C025}
+  - {area_1: C1, area_2: DoorC025}
+  - {area_1: C4, area_2: J2}
+  - {area_1: C5, area_2: J2}
+  - {area_1: C17, area_2: J2}
+  - {area_1: C17, area_2: DoorCBuilding}
+  - {area_1: DoorCBuilding, area_2: Reception}
+  - {area_1: Reception, area_2: HSS1}
+  - {area_1: HSS1, area_2: HSS2}
+  - {area_1: HSS2, area_2: HSS3}
+  - {area_1: HSS3, area_2: HSS4}
+  - {area_1: HSS3, area_2: Foosball}
+  - {area_1: C5, area_2: StudyArea2}
+  - {area_1: C6, area_2: StudyArea2}
+  - {area_1: C6, area_2: J4}
+  - {area_1: C7, area_2: J4}
+  - {area_1: C8, area_2: J4}
+  - {area_1: C8, area_2: J3}
+  - {area_1: C9, area_2: J3}
+  - {area_1: C10, area_2: J3}
+  - {area_1: C11, area_2: J3}
+  - {area_1: C11, area_2: C12}
+  - {area_1: C3, area_2: C12}
+topology_nodes:
+  - id: 1
+    position: {x: 1.656, y: 21.918}
+  - id: 2
+    position: {x: 1.510, y: 13.657}
+  - id: 3
+    position: {x: 1.403, y: 5.890}
+  - id: 4
+    position: {x: -4.653, y: 5.920}
+  - id: 5
+    position: {x: -14.544, y: 5.935}
+  - id: 6
+    position: {x: -4.760, y: 21.925}
+  - id: 7
+    position: {x: -4.511, y: 13.667}
+  - id: 8
+    position: {x: -9.971, y: 13.639}
+  - id: 9
+    position: {x: -26.252, y: 5.763}
+  - id: 10
+    position: {x: -51.894, y: 3.847}
+  - id: 11
+    position: {x: -63.731, y: 5.721}
+  - id: 12
+    position: {x: -77.733, y: 5.720}
+  - id: 13
+    position: {x: -97.078, y: 6.670}
+topology_connections:
+  - {node_1: 1, node_2: 2}
+  - {node_1: 1, node_2: 6}
+  - {node_1: 2, node_2: 3}
+  - {node_1: 2, node_2: 7}
+  - {node_1: 3, node_2: 4}
+  - {node_1: 4, node_2: 5}
+  - {node_1: 4, node_2: 7}
+  - {node_1: 7, node_2: 8}
+  - {node_1: 5, node_2: 9}
+  - {node_1: 9, node_2: 10}
+  - {node_1: 10, node_2: 11}
+  - {node_1: 11, node_2: 12}
+  - {node_1: 12, node_2: 13}

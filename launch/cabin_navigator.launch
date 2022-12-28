@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="robot_name" default="ropod_sim"/>
+    <arg name="config_dir" default="$(find cabin_nav)/config/$(arg robot_name)/"/>
+    <arg name="dummy_mode" default="false"/>
+    <arg name="enable_gdb" default="false"/>
+
+    <group if="$(arg enable_gdb)">
+        <node pkg="cabin_nav" name="cabin_navigator" type="cabin_navigator_ros"
+              output="screen" launch-prefix="gdb -ex run \-\-args">
+            <remap from="~goal" to="/move_base_simple/goal"/>
+            <param name="dummy_mode" type="bool" value="$(arg dummy_mode)"/>
+            <param name="config_dir" type="str" value="$(arg config_dir)"/>
+        </node>
+    </group>
+
+    <group unless="$(arg enable_gdb)">
+        <node pkg="cabin_nav" name="cabin_navigator" type="cabin_navigator_ros"
+              output="screen">
+            <remap from="~goal" to="/move_base_simple/goal"/>
+            <param name="dummy_mode" type="bool" value="$(arg dummy_mode)"/>
+            <param name="config_dir" type="str" value="$(arg config_dir)"/>
+        </node>
+    </group>
+
+</launch>

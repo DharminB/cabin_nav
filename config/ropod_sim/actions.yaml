@@ -1,0 +1,25 @@
+goto:
+    goal_tolerance_linear: 0.2
+    goal_tolerance_angular: 0.2
+    global_frame: "map"
+    robot_frame: "base_link"
+    available_behaviors:
+        - standstill
+        - joypad
+        - ptp
+        - ptp_occ_grid
+        - corridor
+        - corridor_to_junction_transition
+        - junction
+        - corridor_to_door_transition
+        - door
+        - open_area
+        - recovery_ptp
+        - ptp_docked
+        - corridor_docked
+        - corridor_to_junction_transition_docked
+        - junction_docked
+        - corridor_to_door_transition_docked
+        - door_docked
+        - door_to_corridor_transition_docked
+        - open_area_docked

@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="world_model_name" default="brsu"/>
+    <arg name="robot_id" default="/ropod" />
+
+    <!-- Map arguments -->
+    <arg name="map_file"
+         default="$(find ropod_sim)/world_description/occupancy_grids/$(arg world_model_name).yaml" />
+    <arg name="init_x" default="62.7" />
+    <arg name="init_y" default="31.7" />
+    <arg name="init_theta" default="3.14" />
+    <arg name="cart_init_x" default="62.0" />
+    <arg name="cart_init_y" default="35.0" />
+    <arg name="cart_init_theta" default="1.57" />
+    <arg name="map_offset_x" default="0.0" />
+    <arg name="map_offset_y" default="0.0" />
+    <arg name="map_offset_theta" default="0.0" />
+
+    <!-- gazebo arguments -->
+    <arg name="paused" default="false"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="gui" default="false"/>
+    <arg name="debug" default="false"/>
+
+    <arg name="start_rviz" default="true"/>
+
+    <!-- Gazebo server -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    </include>
+
+    <!-- World -->
+    <group>
+        <arg name="world_model"
+             default="$(find ropod_sim)/world_description/$(arg world_model_name).xacro"/>
+        <param name="world_description"
+               command="rosrun xacro xacro '$(arg world_model)'" />
+
+        <!-- spawn uploaded world model -->
+        <node pkg="gazebo_ros" name="gazebo_world_model" type="spawn_model"
+              respawn="false" output="screen"
+              args="-urdf -param world_description -model world -x 0.0 -y 0.0 -z 0.0" />
+    </group>
+
+    <!-- Cart -->
+    <include file="$(find ropod_sim)/ros/launch/cart.launch">
+        <arg name="cart_model" value="mobidik"/>
+        <arg name="cart_id" value="cart_1"/>
+        <arg name="cart_init_x" value="$(arg cart_init_x)" />
+        <arg name="cart_init_y" value="$(arg cart_init_y)" />
+        <arg name="cart_init_theta" value="$(arg cart_init_theta)" />
+        <arg name="global_frame" value="map" />
+    </include>
+
+    <!-- Robot -->
+    <include file="$(find ropod_sim)/ros/launch/ropod.launch">
+        <arg name="model" value="ropod"/>
+        <arg name="robot_id" value="$(arg robot_id)" />
+        <arg name="init_x" value="$(arg init_x)" />
+        <arg name="init_y" value="$(arg init_y)" />
+        <arg name="init_theta" value="$(arg init_theta)" />
+    </include>
+
+    <!-- fake localization -->
+    <node pkg="fake_localization" type="fake_localization" name="fake_localization">
+        <remap from="base_pose_ground_truth" to="$(arg robot_id)/odom"/>
+        <param name="odom_frame_id" type="string" value="ropod/odom"/>
+        <param name="delta_x" type="double" value="$(arg map_offset_x)"/>
+        <param name="delta_y" type="double" value="$(arg map_offset_y)"/>
+        <param name="delta_yaw" type="double" value="$(arg map_offset_theta)"/>
+        <param name="global_frame_id" type="string" value="map"/>
+        <param name="base_frame_id" type="string" value="ropod/base_link"/>
+    </node>
+
+    <!-- map server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+    <group if="$(arg start_rviz)">
+        <!-- rviz for visualisation -->
+        <node pkg="rviz" type="rviz" name="rviz"
+              args="-d $(find cabin_nav)/rviz/ropod_sim/cabin_nav.rviz" />
+    </group>
+
+</launch>

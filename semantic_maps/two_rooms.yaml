@@ -1,0 +1,44 @@
+areas:
+  - name: C1
+    type: corridor
+    polygon:
+      - {x: -2.000, y: 2.000}
+      - {x: -2.000, y: 4.000}
+      - {x: 6.000, y: 4.000}
+      - {x: 6.000, y: 2.000}
+  - name: DoorR1
+    type: door
+    polygon:
+      - {x: -1.000, y: 2.000}
+      - {x: 0.000, y: 2.000}
+  - name: DoorR2
+    type: door
+    polygon:
+      - {x: 4.000, y: 2.000}
+      - {x: 5.000, y: 2.000}
+  - name: R1
+    type: room
+    polygon:
+      - {x: -2.000, y: -2.000}
+      - {x: -2.000, y: 2.000}
+      - {x: 2.000, y: 2.000}
+      - {x: 2.000, y: -2.000}
+  - name: R2
+    type: room
+    polygon:
+      - {x: 2.000, y: -2.000}
+      - {x: 2.000, y: 2.000}
+      - {x: 6.000, y: 2.000}
+      - {x: 6.000, y: -2.000}
+connections:
+  - {area_1: C1, area_2: DoorR1}
+  - {area_1: C1, area_2: DoorR2}
+  - {area_1: DoorR1, area_2: R1}
+  - {area_1: DoorR2, area_2: R2}
+topology_nodes:
+  - id: 1
+    position: {x: -0.500, y: 3.000}
+  - id: 2
+    position: {x: 4.500, y: 3.000}
+topology_connections:
+  - {node_1: 1, node_2: 2}

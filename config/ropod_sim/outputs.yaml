@@ -1,0 +1,26 @@
+cmd_vel:
+    type: "CMD_VEL"
+    topic: "/ropod/cmd_vel"
+    robot_frame: "/ropod/base_link"
+    rate: 20.0
+    footprint:
+        - {x: 0.3, y: 0.3}
+        - {x: -0.3, y: 0.3}
+        - {x: -0.3, y: -0.3}
+        - {x: 0.3, y: -0.3}
+    footprint_padding: 0.05
+    # acceleration limits
+    max_acc: {x: 0.5, y: 0.5, theta: 1.0}
+    braking_acc: {x: 1.0, y: 1.0, theta: 1.5}
+    # velocity limits
+    max_vel: {x:  1.5, y:  1.5, theta:  1.5}
+    min_vel: {x: -0.3, y: -1.5, theta: -1.5}
+
+markers:
+    type: "VISUALIZATION_MARKER"
+    topic: "/cabin_navigator/behavior_markers"
+    robot_frame: "/ropod/base_link"
+    global_frame: "map"
+    marker_namespace: "behavior"
+    use_refresh_style: false
+    max_markers: 50

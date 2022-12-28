@@ -1,0 +1,59 @@
+#! /usr/bin/env python
+
+from __future__ import print_function
+
+import math
+import os
+import sys
+import yaml
+
+# TRANSFORM_POSE = [58.658, 32.587, -1.022] # from brsu_locomotec to brsu
+TRANSFORM_POSE = [-2.798, -67.044, 1.022] # from brsu to brsu_locomotec
+
+def transform_semantic_map(semantic_map_file, semantic_map_tf_file, transform_pose):
+    data = {}
+    if os.path.exists(semantic_map_file):
+        with open(semantic_map_file, 'r') as file_obj:
+            data = yaml.safe_load(file_obj)
+    else:
+        print('Semantic map file does not exist.')
+        sys.exit(1)
+
+    # areas = areas[18:19]
+    transform_mat = [[1.0, 0.0, 0.0],
+                     [0.0, 1.0, 0.0],
+                     [0.0, 0.0, 1.0]]
+
+    transform_mat[0][0] = math.cos(transform_pose[2])
+    transform_mat[0][1] = -math.sin(transform_pose[2])
+    transform_mat[1][0] = math.sin(transform_pose[2])
+    transform_mat[1][1] = math.cos(transform_pose[2])
+
+    transform_mat[0][2] = transform_pose[0]
+    transform_mat[1][2] = transform_pose[1]
+
+    for area in data["areas"]:
+        for i, p in enumerate(area["polygon"]):
+            vec = [p[0], p[1], 1.0]
+            transformed_pt = mat_mul(transform_mat, vec)
+            area["polygon"][i][0] = round(transformed_pt[0], 3)
+            area["polygon"][i][1] = round(transformed_pt[1], 3)
+
+    with open(semantic_map_tf_file, 'w') as file_obj:
+        yaml.safe_dump(data, file_obj)
+
+def mat_mul(mat, vec):
+    ans = [0.0, 0.0, 0.0]
+    for i in range(3):
+        ans[i] = 0.0
+        for k in range(3):
+            ans[i] += mat[i][k] * vec[k]
+    return ans
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("No semantic map file provided")
+        sys.exit(1)
+
+    map_tf_file = '/tmp/transformed_semantic_map.yaml'
+    transform_semantic_map(sys.argv[1], map_tf_file, TRANSFORM_POSE)

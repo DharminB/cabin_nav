@@ -1,0 +1,573 @@
+standstill:
+    type: "standstill"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 2}
+
+        max_acc: {x: 0.5, y: 0.5, theta: 1.0}
+
+        max_wheel_current_idle_value: 0.0
+        max_wheel_current_reset_value: 20.0
+
+    transition_condition:
+        pre:
+            goal_tolerance_linear: 0.2
+            goal_tolerance_angular: 0.2
+            goal_tolerance_angular_docked: 0.5
+
+    required_inputs: []
+
+joypad:
+    type: "joypad"
+    control:
+        control_horizon:
+            - {duration: 2.0, num_of_controls: 10}
+
+        max_acc: {x: 0.3, y: 0.3, theta: 0.5}
+        max_vel: {x: 0.5, y:  0.5, theta:  0.5}
+        min_vel: {x: 0.0, y: -0.5, theta: -0.5}
+
+        max_wheel_current_required_value: 20.0
+
+    required_inputs:
+        - "laser"
+        - "joypad"
+
+ptp:
+    type: "ptp"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 2.0, num_of_controls: 6}
+            - {duration: 1.0, num_of_controls: 2}
+
+        max_acc: {x: 0.5, y: 0.5, theta: 1.0}
+        max_vel: {x: 0.5, y:  0.3, theta:  0.7}
+        min_vel: {x: 0.0, y: -0.3, theta: -0.7}
+
+        is_unicycle: false # if unicycle make intercept_angle non zero
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 20.0, y: 20.0, theta: 10.0}
+                vel: {x: 10.0, y: 10.0, theta: 10.0}
+            goal_state_intercept_angle: 0.0
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        min_inflation_dist: 0.05
+        max_inflation_dist: 1.0
+
+        geometric_planner:
+            trigger_threshold: 0.2
+            type: "simple_straight"
+            # type: "simple_dubins"
+            # type: "astar_grid"
+            # type: "astar_lattice"
+            # grid_cell_size: 0.2
+            # grid_radius: 5.0
+            # turning_radius: 1.0
+            # kinematic_model: "unicycle"
+            occ_grid_cell_size: 0.2
+            occ_grid_radius: 5.0
+            goal_tolerance_linear: 0.2
+            goal_tolerance_angular: 1.0
+            use_goal_theta: false
+
+        initial_guess:
+            num_of_vel_x_samples: 4
+            num_of_vel_y_samples: 5
+            num_of_vel_theta_samples: 7
+            quadratic_theta_samples: true
+            apply_elliptical_filter: true
+            num_of_controls: 1
+            sample_time: 4.0
+            states_per_control: 4
+            frequency: 5
+
+        shorten_control_horizon: true
+
+        use_dynamic_obstacles: false
+
+        reverse_motion_goal_threshold_linear: 0.3
+        reverse_motion_goal_threshold_heading: 1.5
+
+    required_inputs:
+        - "laser"
+
+ptp_occ_grid:
+    type: "ptp_occ_grid"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 1.0, num_of_controls: 3}
+
+        max_acc: {x: 0.5, y: 0.5, theta: 1.0}
+        max_vel: {x: 0.5, y:  0.3, theta:  0.7}
+        min_vel: {x: 0.0, y: -0.3, theta: -0.7}
+
+        is_unicycle: false # if unicycle make intercept_angle non zero
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 20.0, y: 20.0, theta: 10.0}
+                vel: {x: 10.0, y: 10.0, theta: 10.0}
+            goal_state_intercept_angle: 0.0
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        min_inflation_dist: 0.05
+        max_inflation_dist: 1.0
+
+        initial_guess:
+            num_of_vel_x_samples: 4
+            num_of_vel_y_samples: 5
+            num_of_vel_theta_samples: 7
+            quadratic_theta_samples: true
+            apply_elliptical_filter: true
+            num_of_controls: 1
+            sample_time: 4.0
+            states_per_control: 4
+            frequency: 5
+
+        geometric_planner:
+            goal_tolerance_linear: 1.0
+            goal_tolerance_angular: 1.0
+
+        shorten_control_horizon: true
+
+        use_dynamic_obstacles: false
+
+        reverse_motion_goal_threshold_linear: 0.3
+        reverse_motion_goal_threshold_heading: 1.5
+
+    voronoi_obst_cell_dist_threshold: 8
+
+    required_inputs:
+        - "laser"
+        - "occ_grid_map"
+
+corridor:
+    type: "corridor"
+    control:
+        control_horizon:
+            - {duration: 2.0, num_of_controls: 10}
+            - {duration: 3.0, num_of_controls: 6}
+
+        max_acc: {x: 0.3, y: 0.3, theta: 0.5}
+        max_vel: {x: 1.0, y:  0.2, theta:  0.2}
+        min_vel: {x: 0.0, y: -0.2, theta: -0.2}
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 0.0, y: 0.0, theta: 5.0}
+                vel: {x: 10.0, y: 1.0, theta: 1.0}
+            ideal_path_perp_dist: 5.0
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            left_wall_repulsion: 100.0
+            right_wall_repulsion: 100.0
+            remaining_laser_pts_repulsion: 100.0
+            linear_vel_ellipse: 10.0
+
+        footprint: {min_x: -0.3, max_x: 0.6, min_y: -0.3, max_y: 0.3}
+        inflation_dist: 0.3
+
+        initial_guess:
+            num_of_vel_x_samples: 3
+            num_of_vel_y_samples: 3
+            num_of_vel_theta_samples: 3
+            apply_elliptical_filter: false
+            num_of_controls: 2
+            sample_time: 2.5
+            states_per_control: 3
+            frequency: 5
+
+    perception:
+        lane_percentage: 0.6 # 0.0 is left wall and 1.0 is right wall
+        ideal_path_length: 5.0 # meters
+        line_fitting_ransac_delta: 0.1
+
+    recovery:
+        retry_threshold: 5
+        failure_to_recovery_map:
+            perception_failure: "recovery_ptp"
+
+    transition_condition:
+        pre:
+            goal_tolerance_heading: 0.5
+        post:
+            goal_tolerance_linear: 2.0
+            goal_tolerance_heading: 0.8
+
+    required_inputs:
+        - "laser"
+
+corridor_to_junction_transition:
+    type: "ptp"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 2.0, num_of_controls: 6}
+            - {duration: 1.0, num_of_controls: 2}
+
+        max_acc: {x: 0.5, y: 0.2, theta: 0.3}
+        max_vel: {x: 0.3, y:  0.2, theta:  0.5}
+        min_vel: {x: 0.0, y: -0.2, theta: -0.5}
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 10.0, y: 10.0, theta: 10.0}
+                vel: {x: 20.0, y: 10.0, theta: 10.0}
+            normal_state:
+                pos: {x: 0.0, y: 0.0, theta: 0.0}
+                vel: {x: 10.0, y: 0.0, theta: 0.0}
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        min_inflation_dist: 0.05
+        max_inflation_dist: 0.5
+
+        geometric_planner:
+            trigger_threshold: 0.2
+            type: "simple_straight"
+            # type: "astar_grid"
+            # type: "astar_ackermann"
+            occ_grid_cell_size: 0.2
+            occ_grid_radius: 5.0
+            goal_tolerance_linear: 0.2
+            goal_tolerance_angular: 1.0
+            use_goal_theta: true
+
+        initial_guess:
+            num_of_vel_x_samples: 4
+            num_of_vel_y_samples: 5
+            num_of_vel_theta_samples: 7
+            quadratic_theta_samples: true
+            apply_elliptical_filter: false
+            num_of_controls: 1
+            sample_time: 4.0
+            states_per_control: 4
+            frequency: 2
+
+        shorten_control_horizon: false
+
+        reverse_motion_goal_threshold_linear: 0.2
+        reverse_motion_goal_threshold_heading: 1.5
+
+    required_inputs:
+        - "laser"
+
+junction:
+    type: "junction"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 4.0, num_of_controls: 8}
+
+        max_acc: {x: 0.3, y: 0.1, theta: 0.5}
+        max_vel: {x: 0.3, y:  0.1, theta:  0.5}
+        min_vel: {x: 0.0, y: -0.1, theta: -0.5}
+
+        is_unicycle: true
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 10.0, y: 10.0, theta: 10.0}
+                vel: {x: 1.0, y: 1.0, theta: 10.0}
+            goal_state_intercept_angle: 10.0
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 10.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        inflation_dist: 0.2
+
+        initial_guess:
+            num_of_vel_x_samples: 4
+            num_of_vel_y_samples: 1
+            num_of_vel_theta_samples: 11
+            quadratic_theta_samples: true
+            apply_elliptical_filter: false
+            num_of_controls: 1
+            sample_time: 5.0
+            states_per_control: 5
+            frequency: 5
+
+        ideal_path_step_size: 0.2
+        lane_percentage: 0.6
+        pre_spline_control_pt_dist: 1.0
+        post_spline_control_pt_dist: 2.0
+
+    transition_condition:
+        pre:
+            goal_tolerance_linear: 0.5
+            goal_tolerance_angular: 0.5
+        post:
+            goal_tolerance_linear: 1.0
+            goal_tolerance_angular: 0.5
+
+    required_inputs:
+        - "laser"
+
+corridor_to_door_transition:
+    type: "ptp"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 2.0, num_of_controls: 6}
+            - {duration: 1.0, num_of_controls: 2}
+
+        max_acc: {x: 0.5, y: 0.2, theta: 0.5}
+        max_vel: {x: 0.3, y:  0.2, theta:  0.5}
+        min_vel: {x: -0.1, y: -0.2, theta: -0.5}
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 10.0, y: 10.0, theta: 20.0}
+                vel: {x: 10.0, y: 10.0, theta: 10.0}
+            normal_state:
+                pos: {x: 0.0, y: 0.0, theta: 0.0}
+                vel: {x: 20.0, y: 0.0, theta: 0.0}
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        min_inflation_dist: 0.05
+        max_inflation_dist: 0.5
+
+        geometric_planner:
+            trigger_threshold: 0.2
+            type: "simple_straight"
+            # type: "astar_grid"
+            # type: "astar_ackermann"
+            occ_grid_cell_size: 0.2
+            occ_grid_radius: 5.0
+            goal_tolerance_linear: 0.2
+            goal_tolerance_angular: 1.0
+            use_goal_theta: true
+
+        initial_guess:
+            num_of_vel_x_samples: 5
+            num_of_vel_y_samples: 5
+            num_of_vel_theta_samples: 7
+            quadratic_theta_samples: true
+            apply_elliptical_filter: false
+            num_of_controls: 1
+            sample_time: 4.0
+            states_per_control: 4
+            frequency: 3
+
+        shorten_control_horizon: true
+
+        reverse_motion_goal_threshold_linear: 0.2
+        reverse_motion_goal_threshold_heading: 3.2 # will never get satisfied
+
+    required_inputs:
+        - "laser"
+
+door:
+    type: "door"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 2.0, num_of_controls: 6}
+
+        max_acc: {x: 0.2, y: 0.2, theta: 0.5}
+        max_vel: {x: 0.2, y:  0.1, theta:  0.2}
+        min_vel: {x: 0.0, y: -0.1, theta: -0.2}
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 0.0, y: 0.0, theta: 5.0}
+                vel: {x: 10.0, y: 1.0, theta: 2.0}
+
+            ideal_path_perp_dist: 10.0
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        inflation_dist: 0.05
+
+        initial_guess:
+            num_of_vel_x_samples: 3
+            num_of_vel_y_samples: 5
+            num_of_vel_theta_samples: 5
+            apply_elliptical_filter: true
+            num_of_controls: 1
+            sample_time: 3.0
+            states_per_control: 5
+            frequency: 5
+
+    perception:
+        ideal_path_length_after_door: 2.0 # meters
+        door_frame_buffer_size: 2
+        avg_pts_dist_threshold: 0.1
+
+    recovery:
+        retry_threshold: 30
+        door_mismatch_threshold: 0.3
+
+    transition_condition:
+        pre:
+            door_goal_dist: 1.5
+            door_min_dist: 1.0
+            door_max_dist: 2.5
+            goal_tolerance_angular: 0.8
+            goal_tolerance_heading: 0.5
+        post:
+            door_min_dist_x: 0.5
+
+    required_inputs:
+        - "laser"
+
+open_area:
+    type: "open_area"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 2.0, num_of_controls: 6}
+            - {duration: 2.0, num_of_controls: 4}
+
+        max_acc: {x: 0.3, y: 0.2, theta: 0.3}
+        max_vel: {x: 1.0, y:  0.2, theta:  0.5}
+        min_vel: {x: 0.0, y: -0.2, theta: -0.5}
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 10.0, y: 10.0, theta: 10.0}
+                vel: {x: 10.0, y: 10.0, theta: 10.0}
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+            linear_vel_ellipse: 10.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        min_inflation_dist: 0.05
+        max_inflation_dist: 1.0
+
+        initial_guess:
+            num_of_vel_x_samples: 6
+            num_of_vel_y_samples: 1
+            num_of_vel_theta_samples: 11
+            quadratic_theta_samples: true
+            apply_elliptical_filter: false
+            num_of_controls: 1
+            sample_time: 5.0
+            states_per_control: 10
+            frequency: 5
+
+        geometric_plan_wp_tolerance: 2.0
+        robot_to_goal_dist: 5.5
+
+    transition_condition:
+        pre:
+            goal_tolerance_linear: 1.5
+        post:
+            goal_tolerance_linear_open_area: 1.0
+            goal_tolerance_linear_diff_area: 2.0
+            goal_tolerance_linear_final_goal: 3.0
+
+    required_inputs:
+        - "laser"
+
+recovery_ptp:
+    type: "recovery_ptp"
+    control:
+        control_horizon:
+            - {duration: 1.0, num_of_controls: 5}
+            - {duration: 2.0, num_of_controls: 6}
+            - {duration: 1.0, num_of_controls: 2}
+
+        max_acc: {x: 0.2, y: 0.2, theta: 1.0}
+        max_vel: {x: 0.3, y:  0.25, theta:  1.0}
+        min_vel: {x: 0.0, y: -0.25, theta: -1.0}
+
+        is_unicycle: false # if unicycle make intercept_angle non zero
+
+        # weights for cost function
+        weights:
+            goal_state:
+                pos: {x: 20.0, y: 20.0, theta: 10.0}
+                vel: {x: 10.0, y: 10.0, theta: 10.0}
+            goal_state_intercept_angle: 0.0
+
+            acc_limit: {x: 10000.0, y: 10000.0, theta: 10000.0}
+            vel_limit: {x: 1000.0, y: 1000.0, theta: 1000.0}
+
+            laser_pts_repulsion: 100.0
+
+        footprint: {min_x: -0.3, max_x: 0.3, min_y: -0.3, max_y: 0.3}
+        min_inflation_dist: 0.05
+        max_inflation_dist: 1.0
+
+        geometric_planner:
+            trigger_threshold: 0.2
+            type: "simple_straight"
+            # type: "astar_grid"
+            # type: "astar_ackermann"
+            occ_grid_cell_size: 0.2
+            occ_grid_radius: 5.0
+            goal_tolerance_linear: 0.2
+            goal_tolerance_angular: 1.0
+            use_goal_theta: false
+
+        initial_guess:
+            num_of_vel_x_samples: 4
+            num_of_vel_y_samples: 5
+            num_of_vel_theta_samples: 7
+            quadratic_theta_samples: true
+            apply_elliptical_filter: true
+            num_of_controls: 1
+            sample_time: 4.0
+            states_per_control: 4
+            frequency: 5
+
+        shorten_control_horizon: true
+
+        reverse_motion_goal_threshold_linear: 0.2
+        reverse_motion_goal_threshold_heading: 1.5
+
+        max_goal_dist: 3.0
+
+        recovery_time_threshold: 30
+
+    transition_condition:
+        post:
+            goal_tolerance_linear: 0.5
+            goal_tolerance_angular: 0.5
+
+    required_inputs:
+        - "laser"
