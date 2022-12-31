@@ -11,7 +11,7 @@ task. The context consists of sensor data and **semantic map**.
 </p>
 
 This is a down-sized version of my Master's thesis project. Full version could
-- transport a cart ([youtube](https://youtu.be/Df7EnYdpkkw))
+- transport a cart ([youtube](https://youtu.be/vp-CY13f3D8))
 - sweep an area ([youtube](https://youtu.be/Df7EnYdpkkw))
 
 However, only `goto` action was allowed to be open-sourced.
