@@ -2,13 +2,24 @@
 
 Context Aware Behavior-based INdoor NAVigation
 
+The robot uses different behaviors based on its current context to achieve a
+task. The context consists of sensor data and **semantic map**. 
+
+![ptp](docs/ptp.gif) ![cjc](docs/corridor_junction_corridor.gif)
+
+This is a down-sized version of my Master's thesis project. Full version could
+- transport a cart ([youtube](https://youtu.be/Df7EnYdpkkw))
+- sweep an area ([youtube](https://youtu.be/Df7EnYdpkkw))
+However, only `goto` action was allowed to be open-sourced.
+
 ## Dependency
 
 - [geometry\_common](https://github.com/kelo-robotics/geometry_common)
 - [yaml\_common](https://github.com/kelo-robotics/yaml_common)
 - For simulation [ropod\_sim](https://github.com/DharminB/ropod_sim)(optional)
 
-On Ubuntu 20.04 with ROS Noetic, install the package `python-is-python3` using the below command to avoid runtime errors when launching python-based ROS nodes 
+On Ubuntu 20.04 with ROS Noetic, install the package `python-is-python3` using
+the below command to avoid runtime errors when launching python-based ROS nodes 
 ```sh
 sudo apt install python-is-python3
 ```
