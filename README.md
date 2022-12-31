@@ -1,15 +1,19 @@
 # CABIN Nav
 
-Context Aware Behavior-based INdoor NAVigation
+**C**ontext **A**ware **B**ehavior-based **IN**door **NAV**igation
 
 The robot uses different behaviors based on its current context to achieve a
 task. The context consists of sensor data and **semantic map**. 
 
-![ptp](docs/ptp.gif) ![cjc](docs/corridor_junction_corridor.gif)
+ <p float="left">
+  <img src="docs/ptp.gif" width="40%" />
+  <img src="docs/corridor_junction_corridor.gif" width="40%" /> 
+</p>
 
 This is a down-sized version of my Master's thesis project. Full version could
 - transport a cart ([youtube](https://youtu.be/Df7EnYdpkkw))
 - sweep an area ([youtube](https://youtu.be/Df7EnYdpkkw))
+
 However, only `goto` action was allowed to be open-sourced.
 
 ## Dependency
