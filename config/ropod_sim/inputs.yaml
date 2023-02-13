@@ -13,14 +13,14 @@ velocity:
 
 localisation:
     type: "LOCALISATION"
-    robot_frame: "/ropod/base_link"
+    robot_frame: "ropod/base_link"
     global_frame: "map"
     always_active: true
 
 laser:
     type: "LASER"
     topic: "/ropod/scan"
-    robot_frame: "/ropod/base_link"
+    robot_frame: "ropod/base_link"
 
 joypad:
     type: "JOYPAD"
@@ -31,12 +31,12 @@ front_rs:
     type: "IMG"
     topic: "/ropod/realsense_front_camera/color/image_raw"
     camera_info_topic: "/ropod/realsense_front_camera/color/camera_info"
-    robot_frame: "/ropod/base_link"
+    robot_frame: "ropod/base_link"
 
 torso_rs:
     type: "POINTCLOUD"
     topic: "/ropod/realsense_torso_camera/depth_registered/points"
-    robot_frame: "/ropod/base_link"
+    robot_frame: "ropod/base_link"
 
 occ_grid_map:
     type: "OCCUPANCY_GRID_MAP"

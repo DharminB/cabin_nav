@@ -24,7 +24,6 @@ Panels:
     Name: Views
     Splitter Ratio: 0.5
   - Class: rviz/Time
-    Experimental: false
     Name: Time
     SyncMode: 0
     SyncSource: LaserScan
@@ -35,6 +34,21 @@ Toolbars:
 Visualization Manager:
   Class: ""
   Displays:
+    - Class: rviz/TF
+      Enabled: false
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        {}
+      Update Interval: 0
+      Value: false
     - Class: rviz/Group
       Displays:
         - Alpha: 0.5
@@ -83,12 +97,14 @@ Visualization Manager:
           Unreliable: false
           Use Timestamp: false
           Value: true
-        - Class: rviz/Axes
+        - Alpha: 1
+          Class: rviz/Axes
           Enabled: true
           Length: 5
           Name: Axes
           Radius: 0.5
           Reference Frame: <Fixed Frame>
+          Show Trail: false
           Value: true
       Enabled: true
       Name: Map
@@ -228,19 +244,23 @@ Visualization Manager:
           Update Interval: 0.0010000000474974513
           Value: true
           Visual Enabled: true
-        - Class: rviz/Axes
+        - Alpha: 1
+          Class: rviz/Axes
           Enabled: true
           Length: 0.30000001192092896
           Name: Axes
           Radius: 0.05999999865889549
           Reference Frame: ropod/base_link
+          Show Trail: false
           Value: true
-        - Class: rviz/Axes
+        - Alpha: 1
+          Class: rviz/Axes
           Enabled: true
           Length: 0.05000000074505806
           Name: small_axes
           Radius: 0.019999999552965164
           Reference Frame: ropod/base_link
+          Show Trail: false
           Value: true
       Enabled: true
       Name: Robot
@@ -361,6 +381,7 @@ Visualization Manager:
               Head Length: 0.07000000029802322
               Head Radius: 0.029999999329447746
               Name: amcl particles
+              Queue Size: 10
               Shaft Length: 0.23000000417232513
               Shaft Radius: 0.009999999776482582
               Shape: Arrow (Flat)
@@ -391,6 +412,7 @@ Visualization Manager:
               Head Length: 0.30000001192092896
               Head Radius: 0.10000000149011612
               Name: amcl
+              Queue Size: 10
               Shaft Length: 0.20000000298023224
               Shaft Radius: 0.05000000074505806
               Shape: Arrow
@@ -458,6 +480,7 @@ Visualization Manager:
               Keep: 100
               Name: Odometry
               Position Tolerance: 0.10000000149011612
+              Queue Size: 10
               Shape:
                 Alpha: 1
                 Axes Length: 1
@@ -480,6 +503,7 @@ Visualization Manager:
               Color: 25; 255; 0
               Enabled: true
               Name: Polygon
+              Queue Size: 10
               Topic: /cabin_navigator/footprint
               Unreliable: false
               Value: true
@@ -488,7 +512,7 @@ Visualization Manager:
               Marker Topic: /cabin_navigator/behavior_markers
               Name: behavior_markers
               Namespaces:
-                behavior: true
+                {}
               Queue Size: 100
               Value: true
             - Alpha: 1
@@ -508,6 +532,7 @@ Visualization Manager:
                 Z: 0
               Pose Color: 255; 0; 0
               Pose Style: Arrows
+              Queue Size: 10
               Radius: 0.029999999329447746
               Shaft Diameter: 0.009999999776482582
               Shaft Length: 0.029999999329447746
@@ -527,6 +552,7 @@ Visualization Manager:
               Head Length: 0.10000000149011612
               Head Radius: 0.10000000149011612
               Name: Goal pose
+              Queue Size: 10
               Shaft Length: 0.20000000298023224
               Shaft Radius: 0.05000000074505806
               Shape: Arrow
@@ -559,6 +585,7 @@ Visualization Manager:
           RobotModel: true
           Value: false
           small_axes: true
+        TF: true
         Value: true
         cabin navigation:
           Value: true
@@ -608,12 +635,13 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 39.29185104370117
+      Distance: 11.087297439575195
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
         X: 0.20508000254631042
         Y: 0
@@ -625,7 +653,6 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.399999976158142
       Target Frame: ropod/base_link
-      Value: ThirdPersonFollower (rviz)
       Yaw: 3.140000104904175
     Saved:
       - Class: rviz/ThirdPersonFollower
@@ -635,6 +662,7 @@ Visualization Manager:
           Stereo Focal Distance: 1
           Swap Stereo Eyes: false
           Value: false
+        Field of View: 0.7853981852531433
         Focal Point:
           X: 0.20508000254631042
           Y: 0
@@ -646,7 +674,6 @@ Visualization Manager:
         Near Clip Distance: 0.009999999776482582
         Pitch: 1.399999976158142
         Target Frame: ropod/base_link
-        Value: ThirdPersonFollower (rviz)
         Yaw: 3.140000104904175
       - Angle: 0
         Class: rviz/TopDownOrtho
@@ -660,7 +687,6 @@ Visualization Manager:
         Near Clip Distance: 0.009999999776482582
         Scale: 123.49219512939453
         Target Frame: ropod/base_link
-        Value: TopDownOrtho (rviz)
         X: 0
         Y: 0
 Window Geometry:
@@ -668,10 +694,10 @@ Window Geometry:
     collapsed: true
   Displays:
     collapsed: true
-  Height: 1004
+  Height: 1034
   Hide Left Dock: true
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000015600000396fc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003b00000268000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001000660072006f006e0074005f007200730000000323000000cc0000001600fffffffb0000000c00430061006d00650072006100000002a9000001280000001600ffffff000000010000010500000396fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000396000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000039c0000003cfc0100000002fb0000000800540069006d006500000000000000039c0000042700fffffffb0000000800540069006d00650100000000000004500000000000000000000003240000039600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000003b4fc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003b00000268000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001000660072006f006e0074005f007200730000000323000000cc0000001600fffffffb0000000c00430061006d00650072006100000002a9000001460000001600ffffff000000010000010500000396fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000396000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000039c0000003cfc0100000002fb0000000800540069006d006500000000000000039c0000035c00fffffffb0000000800540069006d006501000000000000045000000000000000000000039c000003b400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -680,8 +706,8 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 804
-  X: 850
+  Width: 924
+  X: 970
   Y: 20
   front_rs:
     collapsed: false
