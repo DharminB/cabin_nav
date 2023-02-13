@@ -17,20 +17,24 @@ class CmdVelOutput : public Output
     public:
 
         CmdVelOutput():
+            Output("cmd_vel"),
             nh_("~") {}
 
         virtual ~CmdVelOutput() = default;
 
         bool configure(const YAML::Node& config);
 
+        void initializeOutputData(OutputData::Ptr& output_data) const;
+
         bool setData(
                 const OutputData::Ptr& output_data,
-                const InputData::Ptr& input_data,
-                const std::string& output_name);
+                const InputData::Map& input_data_map);
 
         void start() override;
 
         void stop() override;
+
+        std::ostream& write(std::ostream& out) const;
 
     protected:
 
@@ -63,7 +67,7 @@ class CmdVelOutput : public Output
 
         void step();
 
-        void applySafetyConstraints(const InputData::Ptr& input_data);
+        void applySafetyConstraints(const InputData::Map& input_data_map);
 
         bool parseFootprint(const YAML::Node& config);
 

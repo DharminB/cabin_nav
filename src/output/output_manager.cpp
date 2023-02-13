@@ -36,7 +36,7 @@ bool OutputManager::configure(const YAML::Node& config)
 
         output->start();
 
-        if ( outputs_.count(output_name) > 0 )
+        if ( outputs_.find(output_name) != outputs_.end() )
         {
             std::cerr << Print::Err << Print::Time() << "[OutputManager] "
                       << "Output config file contains multiple outputs with same name"
@@ -46,17 +46,28 @@ bool OutputManager::configure(const YAML::Node& config)
         }
         // std::cout << *output << std::endl;
         outputs_[output_name] = output;
+        output_names_.push_back(output_name);
     }
 
     return true;
 }
 
-bool OutputManager::setData(
-        OutputData::Ptr& output_data, const InputData::Ptr& input_data)
+void OutputManager::initializeOutputDataMap(OutputData::Map& output_data_map)
 {
-    for ( auto output_itr = outputs_.begin(); output_itr != outputs_.end(); output_itr ++ )
+    for ( const std::string& output_name : output_names_ )
     {
-        if ( !output_itr->second->setData(output_data, input_data, output_itr->first) )
+        output_data_map[output_name] = nullptr;
+        outputs_[output_name]->initializeOutputData(output_data_map[output_name]);
+    }
+}
+
+bool OutputManager::setData(
+        const OutputData::Map& output_data_map,
+        const InputData::Map& input_data_map)
+{
+    for ( const std::string& output_name : output_names_ )
+    {
+        if ( !outputs_[output_name]->setData(output_data_map.at(output_name), input_data_map) )
         {
             return false;
         }
@@ -66,11 +77,18 @@ bool OutputManager::setData(
 
 void OutputManager::stopAllOutputs()
 {
-    for ( auto itr = outputs_.begin(); itr != outputs_.end(); itr ++ )
+    for ( const std::string& output_name : output_names_ )
     {
-        itr->second->stop();
+        outputs_[output_name]->stop();
     }
 }
 
+void OutputManager::resetOutputDataMap(OutputData::Map& output_data_map) const
+{
+    for ( const std::string& output_name : output_names_ )
+    {
+        output_data_map[output_name]->reset();
+    }
+}
 
 } // namespace cabin

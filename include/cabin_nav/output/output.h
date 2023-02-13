@@ -21,19 +21,31 @@ class Output
     public:
 
         using Ptr = std::shared_ptr<Output>;
+        using ConstPtr = std::shared_ptr<const Output>;
+
+        Output(const std::string& type):
+            type_(type) {}
 
         virtual ~Output() = default;
+
+        virtual void initializeOutputData(OutputData::Ptr& output_data) const = 0;
 
         virtual bool configure(const YAML::Node& config) = 0;
 
         virtual bool setData(
                 const OutputData::Ptr& output_data,
-                const InputData::Ptr& input_data,
-                const std::string& output_name) = 0;
+                const InputData::Map& input_data_map) = 0;
 
         virtual void start() = 0;
 
         virtual void stop() = 0;
+
+        virtual std::ostream& write(std::ostream& out) const = 0;
+
+        const std::string& getType() const
+        {
+            return type_;
+        }
 
     protected:
 
@@ -66,8 +78,17 @@ class Output
 
         virtual void step() = 0;
 
-        Output() = default;
+    private:
 
+        const std::string type_;
+
+        Output() = delete;
+
+};
+
+inline std::ostream& operator << (std::ostream& out, const Output& output)
+{
+    return output.write(out);
 };
 
 } // namespace cabin
