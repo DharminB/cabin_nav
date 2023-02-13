@@ -2,6 +2,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/joypad_input.h>
+#include <cabin_nav/input/joypad_input_data.h>
 
 using Parser = kelo::yaml_common::Parser2;
 
@@ -24,11 +25,27 @@ bool JoypadInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool JoypadInput::getData(InputData::Ptr& input_data, const std::string& input_name)
+bool JoypadInput::getData(InputData::Ptr& input_data)
 {
     std::lock_guard<std::mutex> guard(mutex_);
 
-    input_data->joypad = default_joypad_;
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<JoypadInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[JoypadInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    JoypadInputData::Ptr joypad_input_data =
+        std::static_pointer_cast<JoypadInputData>(input_data);
+
+    joypad_input_data->joypad = default_joypad_;
 
     if ( joypad_.buttons.empty() || joypad_.axes.empty() )
     {
@@ -45,11 +62,11 @@ bool JoypadInput::getData(InputData::Ptr& input_data, const std::string& input_n
 
     for ( size_t i = 0; i < joypad_.buttons.size(); i++ )
     {
-        input_data->joypad.buttons[i] = joypad_.buttons[i];
+        joypad_input_data->joypad.buttons[i] = joypad_.buttons[i];
     }
     for ( size_t i = 0; i < joypad_.axes.size(); i++ )
     {
-        input_data->joypad.axes[i] = joypad_.axes[i];
+        joypad_input_data->joypad.axes[i] = joypad_.axes[i];
     }
 
     return true;
@@ -93,6 +110,12 @@ void JoypadInput::joyCb(const sensor_msgs::Joy::ConstPtr& msg)
 {
     std::lock_guard<std::mutex> guard(mutex_);
     joypad_ = sensor_msgs::Joy(*msg);
+}
+
+std::ostream& JoypadInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

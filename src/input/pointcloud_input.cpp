@@ -3,6 +3,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/pointcloud_input.h>
+#include <cabin_nav/input/pointcloud_input_data.h>
 
 using kelo::geometry_common::Point3D;
 using GCUtils = kelo::geometry_common::Utils;
@@ -27,9 +28,25 @@ bool PointCloudInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool PointCloudInput::getData(InputData::Ptr& input_data, const std::string& input_name)
+bool PointCloudInput::getData(InputData::Ptr& input_data)
 {
     std::lock_guard<std::mutex> guard(mutex_);
+
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<PointCloudInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[PointCloudInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    PointCloudInputData::Ptr pointcloud_input_data =
+        std::static_pointer_cast<PointCloudInputData>(input_data);
 
     if ( !is_tf_valid_ )
     {
@@ -43,12 +60,12 @@ bool PointCloudInput::getData(InputData::Ptr& input_data, const std::string& inp
         }
     }
 
-    input_data->pointcloud_data[input_name] = GCUtils::convertToPointCloud3D(
+    pointcloud_input_data->pts = GCUtils::convertToPointCloud3D(
                 cloud_, row_sub_sample_factor_, col_sub_sample_factor_);
-    tf_.transform(input_data->pointcloud_data[input_name]);
+    tf_.transform(pointcloud_input_data->pts);
 
     /* sanity check */
-    if ( input_data->pointcloud_data[input_name].empty() )
+    if ( pointcloud_input_data->pts.empty() )
     {
         std::cerr << Print::Warn << Print::Time() << "[PointCloudInput] "
                   << "No points" << Print::End << std::endl;
@@ -114,6 +131,12 @@ bool PointCloudInput::initialiseTransformMat(const std::string& frame_id)
                   << ex.what() << Print::End << std::endl;
         return false;
     }
+}
+
+std::ostream& PointCloudInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

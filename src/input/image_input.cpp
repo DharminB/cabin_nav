@@ -5,6 +5,7 @@
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/structs/img_data.h>
 #include <cabin_nav/input/image_input.h>
+#include <cabin_nav/input/image_input_data.h>
 
 using Parser = kelo::yaml_common::Parser2;
 
@@ -27,10 +28,26 @@ bool ImageInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool ImageInput::getData(InputData::Ptr& input_data, const std::string& input_name)
+bool ImageInput::getData(InputData::Ptr& input_data)
 {
     std::lock_guard<std::mutex> guard(mutex_);
     std::lock_guard<std::mutex> cam_info_guard(camera_info_mutex_);
+
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<ImageInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[ImageInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    ImageInputData::Ptr image_input_data =
+        std::static_pointer_cast<ImageInputData>(input_data);
 
     if ( !is_tf_valid_ )
     {
@@ -51,23 +68,22 @@ bool ImageInput::getData(InputData::Ptr& input_data, const std::string& input_na
         }
     }
 
-    input_data->img_data[input_name] = ImgData();
     try
     {
-        input_data->img_data[input_name].img = cv_bridge::toCvCopy(img_)->image;
+        image_input_data->img_data.img = cv_bridge::toCvCopy(img_)->image;
     }
     catch ( const cv_bridge::Exception& e )
     {
         ROS_WARN_STREAM("Could not convert image msg to cv::Mat for input " << topic_);
         return false;
     }
-    input_data->img_data[input_name].cam_mat = cam_mat_;
-    input_data->img_data[input_name].dist_coeff = dist_coeff_;
-    input_data->img_data[input_name].robot_frame_to_cam_tf_mat = tf_;
+    image_input_data->img_data.cam_mat = cam_mat_;
+    image_input_data->img_data.dist_coeff = dist_coeff_;
+    image_input_data->img_data.robot_frame_to_cam_tf_mat = tf_;
 
     /* sanity check */
-    if ( input_data->img_data[input_name].img.cols == 0 ||
-         input_data->img_data[input_name].img.rows == 0 )
+    if ( image_input_data->img_data.img.cols == 0 ||
+         image_input_data->img_data.img.rows == 0 )
     {
         std::cerr << Print::Warn << Print::Time() << "[ImageInput] "
                   << "No image" << Print::End << std::endl;
@@ -143,5 +159,10 @@ bool ImageInput::initialiseTransformMat(const std::string& frame_id)
     }
 }
 
+std::ostream& ImageInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
+}
 
 } // namespace cabin

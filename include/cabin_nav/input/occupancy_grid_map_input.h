@@ -16,17 +16,20 @@ class OccupancyGridMapInput : public Input
     public:
 
         OccupancyGridMapInput():
+            Input("occupancy_grid_map"),
             nh_("~") {}
 
         virtual ~OccupancyGridMapInput() = default;
 
         bool configure(const YAML::Node& config);
 
-        bool getData(InputData::Ptr& input_data, const std::string& input_name);
+        bool getData(InputData::Ptr& input_data);
 
         void activate();
 
         void deactivate();
+
+        std::ostream& write(std::ostream& out) const;
 
     protected:
 

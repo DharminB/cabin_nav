@@ -2,6 +2,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/occupancy_grid_map_input.h>
+#include <cabin_nav/input/occupancy_grid_map_input_data.h>
 
 using kelo::geometry_common::TransformMatrix2D;
 using Parser = kelo::yaml_common::Parser2;
@@ -21,17 +22,33 @@ bool OccupancyGridMapInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool OccupancyGridMapInput::getData(InputData::Ptr& input_data,
-                                     const std::string& input_name)
+bool OccupancyGridMapInput::getData(InputData::Ptr& input_data)
 {
     std::lock_guard<std::mutex> guard(mutex_);
-    if ( input_data->occ_grid_map ) // already filled
+
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<OccupancyGridMapInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[OccupancyGridMapInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    OccupancyGridMapInputData::Ptr occ_grid_map_input_data =
+        std::static_pointer_cast<OccupancyGridMapInputData>(input_data);
+
+    if ( occ_grid_map_input_data->occ_grid_map ) // already filled
     {
         return true;
     }
 
     // TODO: maybe downsample the grid to be more managable for planning???
-    input_data->occ_grid_map = std::make_shared<OccupancyGrid>(
+    occ_grid_map_input_data->occ_grid_map = std::make_shared<OccupancyGrid>(
                 static_cast<size_t>(occ_grid_.info.width),
                 static_cast<size_t>(occ_grid_.info.height),
                 static_cast<float>(occ_grid_.info.resolution),
@@ -43,7 +60,7 @@ bool OccupancyGridMapInput::getData(InputData::Ptr& input_data,
         {
             if ( occ_grid_.data[(j * occ_grid_.info.width) + i] != 0 )
             {
-                input_data->occ_grid_map->setOccupied(i, j);
+                occ_grid_map_input_data->occ_grid_map->setOccupied(i, j);
             }
         }
     }
@@ -88,6 +105,12 @@ void OccupancyGridMapInput::occGridMapCb(const nav_msgs::OccupancyGrid::ConstPtr
     std::lock_guard<std::mutex> guard(mutex_);
     occ_grid_ = nav_msgs::OccupancyGrid(*msg);
     sub_.shutdown(); // single shot subscription
+}
+
+std::ostream& OccupancyGridMapInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

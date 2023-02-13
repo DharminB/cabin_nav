@@ -12,8 +12,9 @@
 
 namespace cabin {
 
-Input::Ptr InputFactory::createInput(const std::string& input_name,
-                                        const YAML::Node& input_config)
+Input::Ptr InputFactory::createInput(
+        const std::string& input_name,
+        const YAML::Node& input_config)
 {
     if ( !input_config.IsMap() )
     {

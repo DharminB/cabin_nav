@@ -18,16 +18,23 @@ class InputManager
 
         bool configure(const YAML::Node& config);
 
-        bool getData(InputData::Ptr input_data);
+        void initializeInputData(
+                InputData::Map& input_data,
+                std::unordered_map<std::string, bool> active_input);
 
-        std::map<std::string, bool> getActiveInputs();
+        bool getData(InputData::Map& input_data);
+
+        void getActiveInputs(
+                std::unordered_map<std::string, bool>& active_inputs) const;
 
         void updateActiveInputs(
                 const std::vector<std::string>& required_inputs);
 
     protected:
 
-        std::map<std::string, Input::Ptr> inputs_;
+        std::unordered_map<std::string, Input::Ptr> inputs_;
+        std::vector<std::string> input_names_;
+
 
 };
 

@@ -5,6 +5,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/localisation_input.h>
+#include <cabin_nav/input/localisation_input_data.h>
 
 using kelo::geometry_common::TransformMatrix2D;
 using GCUtils = kelo::geometry_common::Utils;
@@ -22,14 +23,30 @@ bool LocalisationInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool LocalisationInput::getData(InputData::Ptr& input_data, const std::string& input_name)
+bool LocalisationInput::getData(InputData::Ptr& input_data)
 {
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<LocalisationInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[LocalisationInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    LocalisationInputData::Ptr localisation_input_data =
+        std::static_pointer_cast<LocalisationInputData>(input_data);
+
     tf::StampedTransform stamped_transform;
     try
     {
         tf_listener_->lookupTransform(global_frame_, robot_frame_,
                                       ros::Time(0), stamped_transform);
-        input_data->localisation_tf.update(stamped_transform);
+        localisation_input_data->localisation_tf.update(stamped_transform);
     }
     catch ( const tf::TransformException& ex )
     {
@@ -72,6 +89,12 @@ void LocalisationInput::deactivate()
     }
 
     is_active_ = false;
+}
+
+std::ostream& LocalisationInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin
