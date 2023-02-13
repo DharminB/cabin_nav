@@ -9,6 +9,7 @@
 #include <cabin_nav/mpc/model.h>
 
 #include <cabin_nav/output/cmd_vel_output.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::Polygon2D;
@@ -51,22 +52,38 @@ bool CmdVelOutput::configure(const YAML::Node& config)
     return true;
 }
 
+void CmdVelOutput::initializeOutputData(
+        OutputData::Ptr& output_data) const
+{
+    output_data = std::make_shared<CmdVelOutputData>();
+}
+
 bool CmdVelOutput::setData(
         const OutputData::Ptr& output_data,
-        const InputData::Ptr& input_data,
-        const std::string& output_name)
+        const InputData::Map& input_data_map)
 {
     std::lock_guard<std::mutex> guard(loop_thread_mutex_);
 
-    if ( output_data->trajectory.size() > 0 )
+    if ( output_data->getType() != getType() )
     {
-        target_vel_ = output_data->trajectory.front().vel;
-        applySafetyConstraints(input_data);
-        int sample_time_milli = 1000 * output_data->trajectory.front().t;
+        std::cout << Print::Err << Print::Time() << "[CmdVelOutput] "
+                  << "output_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    CmdVelOutputData::ConstPtr cmd_vel_output_data =
+        std::static_pointer_cast<const CmdVelOutputData>(output_data);
+
+    if ( cmd_vel_output_data->trajectory.size() > 0 )
+    {
+        target_vel_ = cmd_vel_output_data->trajectory.front().vel;
+        applySafetyConstraints(input_data_map);
+        int sample_time_milli = 1000 * cmd_vel_output_data->trajectory.front().t;
         target_vel_time_ = std::chrono::steady_clock::now() +
                            std::chrono::milliseconds(sample_time_milli);
         traj_pub_.publish(Utils::convertToROSPath(
-                output_data->trajectory, robot_frame_));
+                cmd_vel_output_data->trajectory, robot_frame_));
     }
     else
     {
@@ -185,7 +202,7 @@ void CmdVelOutput::step()
     cmd_vel_pub_.publish(cmd_vel_msg);
 }
 
-void CmdVelOutput::applySafetyConstraints(const InputData::Ptr& input_data)
+void CmdVelOutput::applySafetyConstraints(const InputData::Map& input_data_map)
 {
     if ( std::isnan(target_vel_.x) ||
          std::isnan(target_vel_.y) ||
@@ -228,18 +245,18 @@ void CmdVelOutput::applySafetyConstraints(const InputData::Ptr& input_data)
     Trajectory trajectory = Model::calcTrajectory(
             current, u, sample_times);
 
-    /* check collision */
-    float time_to_collision = -1.0f;
-    int collision_index = Utils::calcCollisionIndex(
-            trajectory, footprint_, input_data->laser_pts);
-    if ( collision_index >= 0 ) // unsafe
-    {
-        time_to_collision = trajectory[collision_index].t;
-        float conservative_ttc = std::max(time_to_collision - sample_time, 0.0f);
-        float vel_scaling_factor = conservative_ttc / safe_braking_time;
-        vel_scaling_factor = std::min(1.0f, vel_scaling_factor); // just to be extra safe
-        safe_vel = safe_vel * vel_scaling_factor;
-    }
+    // /* check collision */
+    // float time_to_collision = -1.0f;
+    // int collision_index = Utils::calcCollisionIndex(
+    //         trajectory, footprint_, input_data->laser_pts);
+    // if ( collision_index >= 0 ) // unsafe
+    // {
+    //     time_to_collision = trajectory[collision_index].t;
+    //     float conservative_ttc = std::max(time_to_collision - sample_time, 0.0f);
+    //     float vel_scaling_factor = conservative_ttc / safe_braking_time;
+    //     vel_scaling_factor = std::min(1.0f, vel_scaling_factor); // just to be extra safe
+    //     safe_vel = safe_vel * vel_scaling_factor;
+    // }
 
     if ( safe_vel != target_vel_ )
     {
@@ -280,6 +297,12 @@ bool CmdVelOutput::parseFootprint(const YAML::Node& config)
     footprint_msg_ = footprint_.asPolygonStamped(robot_frame_);
 
     return true;
+}
+
+std::ostream& CmdVelOutput::write(std::ostream& out) const
+{
+    out << "<Output type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

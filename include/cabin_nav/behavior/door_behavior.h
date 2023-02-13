@@ -36,6 +36,8 @@ class DoorBehavior : public Behavior
         kelo::geometry_common::LineSegment2D ideal_path_;
         TrajectoryPoint goal_;
         TrajectoryPoint current_;
+        kelo::geometry_common::TransformMatrix2D localisation_tf_;
+        kelo::geometry_common::PointCloud2D laser_pts_;
         CostFunction cf_;
 
         float inflation_dist_{0.05f};
@@ -69,7 +71,7 @@ class DoorBehavior : public Behavior
 
         bool updateDoorFrame();
 
-        bool findDoorFrameMap(std::vector<visualization_msgs::Marker>& markers);
+        bool findDoorFrameMap();
 
         void calcAveragedDoorFrame();
 

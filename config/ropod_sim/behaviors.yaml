@@ -6,16 +6,10 @@ standstill:
 
         max_acc: {x: 0.5, y: 0.5, theta: 1.0}
 
-        max_wheel_current_idle_value: 0.0
-        max_wheel_current_reset_value: 20.0
-
-    transition_condition:
-        pre:
-            goal_tolerance_linear: 0.2
-            goal_tolerance_angular: 0.2
-            goal_tolerance_angular_docked: 0.5
-
-    required_inputs: []
+    required_inputs:
+        velocity: "velocity"
+    outputs:
+        markers: "markers"
 
 joypad:
     type: "joypad"
@@ -27,11 +21,11 @@ joypad:
         max_vel: {x: 0.5, y:  0.5, theta:  0.5}
         min_vel: {x: 0.0, y: -0.5, theta: -0.5}
 
-        max_wheel_current_required_value: 20.0
-
     required_inputs:
-        - "laser"
-        - "joypad"
+        velocity: "velocity"
+        joypad: "joypad"
+    outputs:
+        markers: "markers"
 
 ptp:
     type: "ptp"
@@ -98,7 +92,11 @@ ptp:
         reverse_motion_goal_threshold_heading: 1.5
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 ptp_occ_grid:
     type: "ptp_occ_grid"
@@ -154,8 +152,12 @@ ptp_occ_grid:
     voronoi_obst_cell_dist_threshold: 8
 
     required_inputs:
-        - "laser"
-        - "occ_grid_map"
+        localisation: "localisation"
+        laser: "laser"
+        velocity: "velocity"
+        occ_grid_map: "occ_grid_map"
+    outputs:
+        markers: "markers"
 
 corridor:
     type: "corridor"
@@ -214,7 +216,11 @@ corridor:
             goal_tolerance_heading: 0.8
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 corridor_to_junction_transition:
     type: "ptp"
@@ -274,7 +280,11 @@ corridor_to_junction_transition:
         reverse_motion_goal_threshold_heading: 1.5
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 junction:
     type: "junction"
@@ -329,7 +339,11 @@ junction:
             goal_tolerance_angular: 0.5
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 corridor_to_door_transition:
     type: "ptp"
@@ -389,7 +403,11 @@ corridor_to_door_transition:
         reverse_motion_goal_threshold_heading: 3.2 # will never get satisfied
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 door:
     type: "door"
@@ -448,7 +466,11 @@ door:
             door_min_dist_x: 0.5
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 open_area:
     type: "open_area"
@@ -501,7 +523,11 @@ open_area:
             goal_tolerance_linear_final_goal: 3.0
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"
 
 recovery_ptp:
     type: "recovery_ptp"
@@ -570,4 +596,8 @@ recovery_ptp:
             goal_tolerance_angular: 0.5
 
     required_inputs:
-        - "laser"
+        velocity: "velocity"
+        localisation: "localisation"
+        laser: "laser"
+    outputs:
+        markers: "markers"

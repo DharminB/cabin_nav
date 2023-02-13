@@ -6,6 +6,7 @@
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/mpc/model.h>
 #include <cabin_nav/utils/utils.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/behavior/behavior.h>
 
 using kelo::geometry_common::Box2D;
@@ -248,8 +249,33 @@ bool Behavior::parseFailureToRecoveryMap(const YAML::Node& config)
 
 bool Behavior::parseRequiredInputs(const YAML::Node& config)
 {
-    return ( Parser::read<std::vector<std::string>>(
-                 config, "required_inputs", required_inputs_) );
+    std::map<std::string, std::string> required_inputs_map;
+    if ( !Parser::read<std::map<std::string, std::string>>(
+                 config, "required_inputs", required_inputs_map) )
+    {
+        return false;
+    }
+    required_inputs_map_ = Utils::convertMapToUnorderedMap(required_inputs_map);
+
+    /* initialize required_inputs_ */
+    required_inputs_.reserve(required_inputs_map.size());
+    for ( auto itr = required_inputs_map.begin(); itr != required_inputs_map.end(); itr ++ )
+    {
+        required_inputs_.push_back(itr->first);
+    }
+    return true;
+}
+
+bool Behavior::parseOutputs(const YAML::Node& config)
+{
+    std::map<std::string, std::string> outputs_map;
+    if ( !Parser::read<std::map<std::string, std::string>>(
+                 config, "outputs", outputs_map) )
+    {
+        return false;
+    }
+    outputs_map_ = Utils::convertMapToUnorderedMap(outputs_map);
+    return true;
 }
 
 float Behavior::calcAccLimitCost(const std::vector<float>& u, bool is_unicycle) const
@@ -508,14 +534,13 @@ Trajectory Behavior::calcRampedTrajectory(
 
 void Behavior::addInitialGuessTrajectoryMarkers(
         const Trajectory& traj,
-        std::vector<visualization_msgs::Marker>& markers) const
+        OutputData::Map& output_data_map) const
 {
-    std::vector<visualization_msgs::Marker> traj_markers = Utils::convertTrajectoryToMarkers(
+    VisualizationMarkerOutputData::addMarkers(output_data_map,
+            outputs_map_.at("markers"), Utils::convertTrajectoryToMarkers(
             traj, "robot",
             0.0f, 0.5f, 0.5f, 1.0f, 0.01f, // line
-            1.0f, 0.0f, 0.0f, 1.0f, 0.05f, 0.01f); // arrow
-    markers.reserve(markers.size() + traj_markers.size());
-    markers.insert(markers.end(), traj_markers.begin(), traj_markers.end());
+            1.0f, 0.0f, 0.0f, 1.0f, 0.05f, 0.01f)); // arrow
 }
 
 } // namespace cabin

@@ -37,6 +37,7 @@ class CorridorBehavior : public Behavior
         std::vector<float> u_;
         TrajectoryPoint goal_;
         TrajectoryPoint current_;
+        kelo::geometry_common::PointCloud2D laser_pts_;
         CostFunction cf_;
 
         kelo::geometry_common::LineSegment2D robot_line_;

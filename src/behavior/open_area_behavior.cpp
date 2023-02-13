@@ -7,6 +7,11 @@
 #include <cabin_nav/structs/context_data.h>
 #include <cabin_nav/mpc/optimiser.h>
 #include <cabin_nav/mpc/model.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/laser_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/utils/geometric_planner.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/open_area_behavior.h>
@@ -32,7 +37,8 @@ bool OpenAreaBehavior::configure(const YAML::Node& config)
          !parseVelLimitWeights(config) ||
          !parseGoalStateWeights(config) ||
          !parseFootprint(config) ||
-         !parseRequiredInputs(config) )
+         !parseRequiredInputs(config) ||
+         !parseOutputs(config) )
     {
         return false;
     }
@@ -98,15 +104,37 @@ void OpenAreaBehavior::reset()
     initial_guess_utils_.reset();
     goal_ = TrajectoryPoint();
     current_.vel = Velocity2D();
+    laser_pts_.clear();
 }
 
 void OpenAreaBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
 {
-    fb.output_data->markers.push_back(behavior_name_marker_);
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), behavior_name_marker_);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), context_data.getPlanMarkers());
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), footprint_marker_);
+
     context_data_ = &context_data;
-    current_.vel = context_data_->input_data->current_vel;
+
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+             required_inputs_map_.at("velocity"), current_.vel) ||
+         !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+             required_inputs_map_.at("localisation"), localisation_tf_) ||
+         !LaserInputData::getLaserPts(context_data.input_data_map,
+             required_inputs_map_.at("laser"), laser_pts_) )
+    {
+        std::cout << Print::Err << Print::Time() << "[OpenAreaBehavior] "
+                  << "Could not get velocity and/or localization tf."
+                  << Print::End << std::endl;
+        CmdVelOutputData::setTrajectory(
+                fb.output_data_map, calcRampedTrajectory(current_.vel));
+        fb.success = false;
+        return;
+    }
 
     calcSpline();
     goal_.pos = calcGoal();
@@ -119,19 +147,18 @@ void OpenAreaBehavior::runOnce(const ContextData& context_data, BehaviorFeedback
     float time_threshold = remaining_time * 0.8f;
 
     Optimiser::conjugateGradientDescent(time_threshold, cf_, u_);
-    fb.output_data->trajectory = Model::calcTrajectory(current_, u_, sample_times_);
+    Trajectory traj = Model::calcTrajectory(current_, u_, sample_times_);
+    CmdVelOutputData::setTrajectory(fb.output_data_map, traj);
 
     std::chrono::duration<float> time_taken = std::chrono::steady_clock::now() - start_time;
     // std::cout << time_taken.count() * 1000.0f << " ms" << std::endl;
 
     /* visualize features using markers */
-    fb.output_data->markers.push_back(goal_.pos.asMarker("robot", 0.0f, 1.0f, 0.0f));
-    fb.output_data->markers.push_back(GCUtils::convertGeometricPathToMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), goal_.pos.asMarker("robot", 0.0f, 1.0f, 0.0f));
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), GCUtils::convertGeometricPathToMarker(
                 geometric_plan_, "robot", 0.0f, 0.33f, 0.0f, 1.0f, 0.02f));
-    std::vector<visualization_msgs::Marker> plan_markers = context_data.getPlanMarkers();
-    fb.output_data->markers.insert(fb.output_data->markers.end(),
-            plan_markers.begin(), plan_markers.end());
-    fb.output_data->markers.push_back(footprint_marker_);
 
     fb.success = true;
 }
@@ -143,7 +170,7 @@ void OpenAreaBehavior::calcInitialU(std::vector<float>& u, BehaviorFeedback& fb)
         initial_guess_utils_.calcInitialGuessIntermittently(
                 current_, u, initial_guess_trajectory_);
         addInitialGuessTrajectoryMarkers(
-                initial_guess_trajectory_, fb.output_data->markers);
+                initial_guess_trajectory_, fb.output_data_map);
     }
     else
     {
@@ -167,7 +194,7 @@ float OpenAreaBehavior::calcCost(const std::vector<float>& u)
         /* CONSTRAINTS */
         cost += weight_laser_pts_repulsion_ *
                 calcLaserPtsCostVelBased(
-                        context_data_->input_data->laser_pts, tp,
+                        laser_pts_, tp,
                         min_inflation_dist_, max_inflation_dist_);
 
         /* vel limit soft constraints */
@@ -195,12 +222,22 @@ bool OpenAreaBehavior::preConditionSatisfied(
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[OpenAreaBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(action);
 
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     const Area::ConstPtr& current_area = goto_plan[goto_plan_index];
-    const Point2D robot_pt = context_data.input_data->localisation_tf.asPose2D().position();
+    const Point2D robot_pt = loc_tf.asPose2D().position();
 
     bool inside_polygon = current_area->getPolygon().containsPoint(robot_pt);
     if ( !inside_polygon )
@@ -230,13 +267,23 @@ bool OpenAreaBehavior::postConditionSatisfied(const ContextData& context_data) c
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[OpenAreaBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     const GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(
             context_data.plan[context_data.plan_index]);
 
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     const Area::ConstPtr& current_area = goto_plan[goto_plan_index];
-    const Point2D robot_pt = context_data.input_data->localisation_tf.asPose2D().position();
+    const Point2D robot_pt = loc_tf.asPose2D().position();
 
     float dist_to_goal = goto_action->getGoal().distTo(robot_pt);
     if ( dist_to_goal < goal_tolerance_linear_post_final_goal_ )
@@ -289,7 +336,7 @@ Pose2D OpenAreaBehavior::calcGoal()
         std::cerr << Print::Warn << Print::Time() << "[OpenAreaBehavior] "
                   << "geometric_plan is empty"
                   << Print::End << std::endl;
-        return context_data_->input_data->localisation_tf.asPose2D();
+        return localisation_tf_.asPose2D();
     }
 
     /* calculate goal_ from geometric_plan_ */
@@ -323,9 +370,9 @@ void OpenAreaBehavior::calcSpline()
 
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
-    const Point2D robot_pt = context_data_->input_data->localisation_tf.asPose2D().position();
+    const Point2D robot_pt = localisation_tf_.asPose2D().position();
 
-    TransformMatrix2D robot_to_global_tf = context_data_->input_data->localisation_tf.calcInverse();
+    TransformMatrix2D robot_to_global_tf = localisation_tf_.calcInverse();
 
     PointVec2D control_pts;
     for ( size_t i = goto_plan_index;

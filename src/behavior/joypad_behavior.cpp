@@ -3,6 +3,10 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/structs/context_data.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/joypad_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/joypad_behavior.h>
 
@@ -19,7 +23,8 @@ bool JoypadBehavior::configure(const YAML::Node& config)
     return ( parseControlHorizon(config) &&
              parseAccLimits(config) &&
              parseVelLimits(config) &&
-             parseRequiredInputs(config) );
+             parseRequiredInputs(config) &&
+             parseOutputs(config) );
 }
 
 void JoypadBehavior::reset()
@@ -28,16 +33,36 @@ void JoypadBehavior::reset()
 
 void JoypadBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
 {
-    fb.output_data->markers.push_back(behavior_name_marker_);
-    Velocity2D curr_vel =  context_data.input_data->current_vel;
-    Velocity2D target_vel;
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), behavior_name_marker_);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), context_data.getPlanMarkers());
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), footprint_marker_);
 
-    if ( context_data.input_data->joypad.buttons[4] == 1 && // LB
-         context_data.input_data->joypad.buttons[5] == 0 )  // RB
+    Velocity2D curr_vel;
+    Joypad joypad;
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+             required_inputs_map_.at("velocity"), curr_vel) ||
+         !JoypadInputData::getJoypad(context_data.input_data_map,
+             required_inputs_map_.at("joypad"), joypad) )
     {
-        target_vel.x = context_data.input_data->joypad.axes[1];
-        target_vel.y = context_data.input_data->joypad.axes[0];
-        target_vel.theta = context_data.input_data->joypad.axes[2];
+        std::cout << Print::Err << Print::Time() << "[StandstillBehavior] "
+                  << "Could not get velocity and/or joypad."
+                  << Print::End << std::endl;
+        CmdVelOutputData::setTrajectory(
+                fb.output_data_map, calcRampedTrajectory(curr_vel));
+        fb.success = false;
+        return;
+    }
+
+    Velocity2D target_vel;
+    if ( joypad.buttons[4] == 1 && // LB
+         joypad.buttons[5] == 0 )  // RB
+    {
+        target_vel.x = joypad.axes[1];
+        target_vel.y = joypad.axes[0];
+        target_vel.theta = joypad.axes[2];
         target_vel.x = ( target_vel.x >= 0 )
                        ? std::fabs(target_vel.x) * max_vel_.x
                        : std::fabs(target_vel.x) * min_vel_.x;
@@ -48,16 +73,9 @@ void JoypadBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& 
                            ? std::fabs(target_vel.theta) * max_vel_.theta
                            : std::fabs(target_vel.theta) * min_vel_.theta;
     }
-
-    fb.output_data->trajectory = calcRampedTrajectory(curr_vel, target_vel);
-
-    std::vector<visualization_msgs::Marker> plan_markers = context_data.getPlanMarkers();
-    fb.output_data->markers.insert(fb.output_data->markers.end(),
-            plan_markers.begin(), plan_markers.end());
-    fb.output_data->markers.push_back(footprint_marker_);
-
+    CmdVelOutputData::setTrajectory(
+            fb.output_data_map, calcRampedTrajectory(curr_vel, target_vel));
     fb.success = true;
-
 }
 
 void JoypadBehavior::calcInitialU(std::vector<float>& u, BehaviorFeedback& fb)
@@ -72,16 +90,27 @@ float JoypadBehavior::calcCost(const std::vector<float>& u)
 bool JoypadBehavior::preConditionSatisfied(
         const ContextData& context_data, Action::Ptr action) const
 {
+    bool is_lb_pressed = false, is_rb_pressed = false, is_yellow_button_pressed = false;
     return ( context_data.active_inputs.at("joypad") &&
-             ( context_data.input_data->joypad.buttons[4] == 1 ||  // LB
-               context_data.input_data->joypad.buttons[5] == 1) ); // RB
+             JoypadInputData::isLeftButtonPressed(context_data.input_data_map,
+                 required_inputs_map_.at("joypad"), is_lb_pressed) &&
+             JoypadInputData::isRightButtonPressed(context_data.input_data_map,
+                 required_inputs_map_.at("joypad"), is_rb_pressed) &&
+             JoypadInputData::isYellowButtonPressed(context_data.input_data_map,
+                 required_inputs_map_.at("joypad"), is_yellow_button_pressed) &&
+             ( is_lb_pressed || is_rb_pressed || is_yellow_button_pressed ) );
 }
 
 bool JoypadBehavior::postConditionSatisfied(const ContextData& context_data) const
 {
+    bool is_green_button_pressed = false, is_rb_pressed = false;
     return ( context_data.active_inputs.at("joypad") &&
-             context_data.input_data->joypad.buttons[1] == 1 && // A (green button)
-             context_data.input_data->joypad.buttons[5] == 0 ); // RB
+             JoypadInputData::isGreenButtonPressed(context_data.input_data_map,
+                 required_inputs_map_.at("joypad"), is_green_button_pressed) &&
+             JoypadInputData::isRightButtonPressed(context_data.input_data_map,
+                 required_inputs_map_.at("joypad"), is_rb_pressed) &&
+             is_green_button_pressed &&
+             !is_rb_pressed );
 }
 
 } // namespace cabin

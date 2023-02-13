@@ -5,6 +5,12 @@
 #include <cabin_nav/structs/context_data.h>
 #include <cabin_nav/utils/voronoi_calculator.h>
 #include <cabin_nav/utils/lattice_search_utils.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/laser_input_data.h>
+#include <cabin_nav/input/occupancy_grid_map_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/ptp_occ_grid_behavior.h>
 
@@ -87,7 +93,7 @@ void PTPOccGridBehavior::planGeometricPath(std::vector<visualization_msgs::Marke
     }
 
     /* transform path from global to local frame */
-    TransformMatrix2D tf = context_data_->input_data->localisation_tf.calcInverse();
+    TransformMatrix2D tf = localisation_tf_.calcInverse();
     Path geometric_path = tf * global_path_;
     for ( size_t i = 0; i+1 < geometric_path.size(); i++ )
     {
@@ -130,8 +136,11 @@ void PTPOccGridBehavior::planGlobalPath()
                                               ? Utils::calcCircumcircleRadius(box_footprint_)
                                               : circle_footprint_.r;
         /* create a local copy of occ grid with inflation of robot'tp circumcircle */
-        occ_grid_map_ = context_data_->input_data->occ_grid_map->calcDilated(
-                footprint_circumcircle_radius);
+        OccupancyGrid::Ptr occ_grid_map;
+        OccupancyGridMapInputData::getOccupancyGridMap(context_data_->input_data_map,
+                    required_inputs_map_.at("occ_grid_map"), occ_grid_map);
+        occ_grid_map_ = occ_grid_map->calcDilated(footprint_circumcircle_radius);
+
         if ( is_footprint_box_ )
         {
             occ_grid_map_->generateRobotPts(box_footprint_);
@@ -172,7 +181,7 @@ void PTPOccGridBehavior::planGlobalPath()
         return;
     }
 
-    const Pose2D robot_pose = context_data_->input_data->localisation_tf.asPose2D();
+    const Pose2D robot_pose = localisation_tf_.asPose2D();
     Path geometric_path;
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 

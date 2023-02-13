@@ -1,6 +1,8 @@
 #ifndef CABIN_OPEN_AREA_behavior_H
 #define CABIN_OPEN_AREA_behavior_H
 
+#include <geometry_common/TransformMatrix2D.h>
+
 #include <cabin_nav/behavior/behavior.h>
 #include <cabin_nav/utils/initial_guess_utils.h>
 
@@ -32,7 +34,9 @@ class OpenAreaBehavior : public Behavior
         std::vector<float> u_;
         TrajectoryPoint goal_;
         TrajectoryPoint current_;
+        kelo::geometry_common::TransformMatrix2D localisation_tf_;
         kelo::geometry_common::Path geometric_plan_;
+        kelo::geometry_common::PointCloud2D laser_pts_;
         CostFunction cf_;
 
         float min_inflation_dist_{0.1f};

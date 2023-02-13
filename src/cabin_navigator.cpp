@@ -33,8 +33,8 @@ bool CABINNavigator::configure(
                   << Print::End << std::endl;
         return false;
     }
-    context_data_.active_inputs = input_manager_.getActiveInputs();
-    context_data_.input_data = std::make_shared<InputData>();
+    input_manager_.initializeInputData(context_data_.input_data_map, context_data_.active_inputs);
+    input_manager_.getActiveInputs(context_data_.active_inputs);
 
     if ( !output_manager_.configure(output_config) )
     {
@@ -43,7 +43,7 @@ bool CABINNavigator::configure(
                   << Print::End << std::endl;
         return false;
     }
-    behavior_fb_.output_data = std::make_shared<OutputData>();
+    output_manager_.initializeOutputDataMap(behavior_fb_.output_data_map);
 
     std::cout << std::setprecision(3) << std::fixed;
 
@@ -165,15 +165,16 @@ float CABINNavigator::runOnce()
     std::lock_guard<std::mutex> guard(loop_thread_mutex_);
 
     /* get input data */
-    if ( !input_manager_.getData(context_data_.input_data) )
+    if ( !input_manager_.getData(context_data_.input_data_map) )
     {
         return 0.5f;
     }
 
-    context_data_.active_inputs = input_manager_.getActiveInputs();
+    input_manager_.getActiveInputs(context_data_.active_inputs);
 
     std::vector<std::string> required_inputs;
-    behavior_fb_.output_data->reset(); // TODO: should this be done every step?
+
+    output_manager_.resetOutputDataMap(behavior_fb_.output_data_map);
 
     /* check for transition */
     Status task_status{Status::UNKNOWN};
@@ -204,7 +205,7 @@ float CABINNavigator::runOnce()
         return 0.0f;
     }
 
-    if ( !output_manager_.setData(behavior_fb_.output_data, context_data_.input_data) )
+    if ( !output_manager_.setData(behavior_fb_.output_data_map, context_data_.input_data_map) )
     {
         std::cout << Print::Err << Print::Time() << "[CABINNavigator] "
                   << "Could not setData successfully after executing "

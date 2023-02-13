@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <regex>
+#include <unordered_map>
 
 #include <visualization_msgs/Marker.h>
 
@@ -16,7 +17,7 @@ namespace cabin {
 
 struct ContextData
 {
-    InputData::Ptr input_data;
+    InputData::Map input_data_map;
 
     std::string current_behavior_name;
 
@@ -25,7 +26,7 @@ struct ContextData
 
     bool is_paused{false};
 
-    std::map<std::string, bool> active_inputs;
+    std::unordered_map<std::string, bool> active_inputs;
 
     bool isPlanValid() const;
 
