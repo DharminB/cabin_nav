@@ -1,96 +1,80 @@
 #ifndef CABIN_INPUT_DATA_H
 #define CABIN_INPUT_DATA_H
 
-#include <vector>
+#include <memory>
+#include <iostream>
+#include <string>
 #include <unordered_map>
-#include <regex>
 
-#include <geometry_common/XYTheta.h>
-#include <geometry_common/Point2D.h>
-#include <geometry_common/Point3D.h>
-#include <geometry_common/TransformMatrix2D.h>
-
-#include <cabin_nav/structs/joypad.h>
-#include <cabin_nav/structs/img_data.h>
-#include <cabin_nav/structs/occupancy_grid.h>
-#include <cabin_nav/semantic_map/semantic_map.h>
+#include <cabin_nav/utils/print.h>
 
 namespace cabin {
 
-struct InputData
+class InputData
 {
 
-    using Ptr = std::shared_ptr<InputData>;
-    using ConstPtr = std::shared_ptr<const InputData>;
+    public:
 
+        using Ptr = std::shared_ptr<InputData>;
+        using ConstPtr = std::shared_ptr<const InputData>;
+        using Map = std::unordered_map<std::string, InputData::Ptr>;
+        using ConstMap = std::unordered_map<std::string, InputData::ConstPtr>;
 
-    kelo::geometry_common::TransformMatrix2D localisation_tf;
+        InputData(const std::string& type):
+            type_(type) {}
 
-    kelo::geometry_common::Velocity2D current_vel;
+        virtual std::ostream& write(std::ostream& out) const = 0;
 
-    kelo::geometry_common::PointCloud2D laser_pts;
-
-    std::unordered_map<std::string, kelo::geometry_common::PointCloud3D> pointcloud_data;
-
-    std::unordered_map<std::string, ImgData> img_data;
-
-    Joypad joypad;
-
-    SemanticMap::ConstPtr semantic_map{nullptr};
-
-    float max_wheel_current;
-
-    OccupancyGrid::Ptr occ_grid_map;
-
-
-
-    friend std::ostream& operator << (std::ostream& out, const InputData& input_data)
-    {
-        out << "laser_pts #: " << input_data.laser_pts.size() << std::endl;
-
-        out << "img_data #: " << input_data.img_data.size() << std::endl;
-        for ( auto itr = input_data.img_data.begin();
-              itr != input_data.img_data.end(); itr ++ )
+        const std::string& getType() const
         {
-            std::ostringstream img_data_stream;
-            img_data_stream << "  " << itr->first << ":\n" << itr->second;
-            std::string img_data_string = img_data_stream.str();
-            img_data_string = std::regex_replace(img_data_string, std::regex("\n"), "\n    ");
-            out << img_data_string << std::endl;
+            return type_;
         }
 
-        out << "pointcloud_data #: " << input_data.pointcloud_data.size() << std::endl;
-        for ( auto itr = input_data.pointcloud_data.begin();
-              itr != input_data.pointcloud_data.end(); itr ++ )
+    protected:
+
+        static bool isValid(
+                const InputData::Map& input_data_map,
+                const std::string& input_name,
+                const std::string& input_type)
         {
-            out << "  " << itr->first
-                << " #: " << itr->second.size() << std::endl;
+            if ( input_data_map.find(input_name) == input_data_map.end() )
+            {
+                std::cout << Print::Err << Print::Time() << "[Input] "
+                          << "InputData::Map does not contain input data with name "
+                          << input_name << "." << Print::End << std::endl;
+                return false;
+            }
+
+            if ( input_data_map.at(input_name) == nullptr )
+            {
+                std::cout << Print::Err << Print::Time() << "[Input] "
+                          << "InputData::Map has nullptr for input data with name "
+                          << input_name << "." << Print::End << std::endl;
+                return false;
+            }
+
+            if ( input_data_map.at(input_name)->getType() != input_type )
+            {
+                std::cout << Print::Err << Print::Time() << "[Input] "
+                          << "InputData::Map contains input data with name "
+                          << input_name << " but not with type " << input_type
+                          << Print::End << std::endl;
+                return false;
+            }
+            return true;
         }
 
-        out << "joypad: " << std::endl;
-        std::ostringstream joypad_stream;
-        joypad_stream << "  " << input_data.joypad;
-        std::string joypad_string = joypad_stream.str();
-        joypad_string = std::regex_replace(joypad_string, std::regex("\n"), "\n  ");
-        out << joypad_string << std::endl;
+    private:
 
-        if ( input_data.semantic_map != nullptr )
-        {
-            out << "semantic_map: " << *(input_data.semantic_map) << std::endl;
-        }
+        const std::string type_;
 
-        out << "max_wheel_current: " << input_data.max_wheel_current << std::endl;
+        InputData() = delete;
 
-        if ( input_data.occ_grid_map != nullptr )
-        {
-            out << "occ_grid: " << input_data.occ_grid_map->getGridSizeX()
-                                << " x " << input_data.occ_grid_map->getGridSizeY();
-        }
+};
 
-        return out;
-    };
-
-
+inline std::ostream& operator << (std::ostream& out, const InputData& input_data)
+{
+    return input_data.write(out);
 };
 
 } // namespace cabin

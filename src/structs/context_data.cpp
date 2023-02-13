@@ -25,11 +25,13 @@ std::string ContextData::getPlanAsString()
 
 std::ostream& operator << (std::ostream& out, const ContextData& context_data)
 {
-    std::ostringstream input_data_stream;
-    input_data_stream << "input_data:" << std::endl << *(context_data.input_data);
-    std::string input_data_string = input_data_stream.str();
-    input_data_string = std::regex_replace(input_data_string, std::regex("\n"), "\n    ");
-    out << input_data_string << std::endl;
+    out << "input_data:" << std::endl;
+    for ( auto itr = context_data.input_data_map.begin();
+          itr != context_data.input_data_map.end();
+          itr ++ )
+    {
+        out << "    " << itr->first << ": " << itr->second << std::endl;
+    }
 
     if ( context_data.is_paused )
     {

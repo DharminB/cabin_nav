@@ -4,6 +4,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/output/visualization_marker_output.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 
 using Parser = kelo::yaml_common::Parser2;
 
@@ -37,22 +38,38 @@ bool VisualizationMarkerOutput::configure(const YAML::Node& config)
     return true;
 }
 
+void VisualizationMarkerOutput::initializeOutputData(
+        OutputData::Ptr& output_data) const
+{
+    output_data = std::make_shared<VisualizationMarkerOutputData>();
+}
+
 bool VisualizationMarkerOutput::setData(
         const OutputData::Ptr& output_data,
-        const InputData::Ptr& input_data,
-        const std::string& output_name)
+        const InputData::Map& input_data_map)
 {
     std::lock_guard<std::mutex> guard(loop_thread_mutex_);
 
-    if ( !output_data->markers.empty() )
+    if ( output_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[VisualizationMarkerOutput] "
+                  << "output_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    VisualizationMarkerOutputData::ConstPtr vis_output_data =
+        std::static_pointer_cast<const VisualizationMarkerOutputData>(output_data);
+
+    if ( !vis_output_data->markers.empty() )
     {
         visualization_msgs::MarkerArray marker_array_msg;
         if ( use_refresh_style_ )
         {
-            marker_array_msg.markers.reserve(output_data->markers.size());
-            for ( size_t i = 0; i < output_data->markers.size(); i++ )
+            marker_array_msg.markers.reserve(vis_output_data->markers.size());
+            for ( size_t i = 0; i < vis_output_data->markers.size(); i++ )
             {
-                visualization_msgs::Marker marker = output_data->markers[i];
+                visualization_msgs::Marker marker = vis_output_data->markers[i];
                 if ( marker.header.frame_id == "robot" )
                 {
                     marker.header.frame_id = robot_frame_;
@@ -69,14 +86,14 @@ bool VisualizationMarkerOutput::setData(
         }
         else
         {
-            size_t marker_size = output_data->markers.size();
+            size_t marker_size = vis_output_data->markers.size();
             marker_array_msg.markers.reserve(max_markers_);
             for ( size_t i = 0; i < max_markers_; i++ )
             {
                 visualization_msgs::Marker marker;
                 if ( i < marker_size )
                 {
-                    marker = output_data->markers[i];
+                    marker = vis_output_data->markers[i];
                     if ( marker.header.frame_id == "robot" )
                     {
                         marker.header.frame_id = robot_frame_;
@@ -142,6 +159,12 @@ void VisualizationMarkerOutput::pubDeleteAllMarker()
     clear_marker.action = visualization_msgs::Marker::DELETEALL;
     clear_marker_array_msg.markers.push_back(clear_marker);
     pub_.publish(clear_marker_array_msg);
+}
+
+std::ostream& VisualizationMarkerOutput::write(std::ostream& out) const
+{
+    out << "<Output type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

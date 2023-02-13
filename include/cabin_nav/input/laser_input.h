@@ -8,6 +8,7 @@
 #include <tf/transform_listener.h>
 
 #include <geometry_common/TransformMatrix2D.h>
+#include <geometry_common/TransformMatrix3D.h>
 
 #include <cabin_nav/input/input_data.h>
 #include <cabin_nav/input/input.h>
@@ -19,17 +20,20 @@ class LaserInput : public Input
     public:
 
         LaserInput():
+            Input("laser"),
             nh_("~") {}
 
         virtual ~LaserInput() = default;
 
         bool configure(const YAML::Node& config);
 
-        bool getData(InputData::Ptr& input_data, const std::string& input_name);
+        bool getData(InputData::Ptr& input_data);
 
         void activate();
 
         void deactivate();
+
+        std::ostream& write(std::ostream& out) const;
 
     protected:
 

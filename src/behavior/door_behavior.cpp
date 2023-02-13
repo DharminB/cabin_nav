@@ -8,6 +8,11 @@
 #include <cabin_nav/structs/context_data.h>
 #include <cabin_nav/mpc/optimiser.h>
 #include <cabin_nav/mpc/model.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/laser_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/door_behavior.h>
 
@@ -35,7 +40,8 @@ bool DoorBehavior::configure(const YAML::Node& config)
          !parseVelLimitWeights(config) ||
          !parseGoalStateWeights(config) ||
          !parseFootprint(config) ||
-         !parseRequiredInputs(config) )
+         !parseRequiredInputs(config) ||
+         !parseOutputs(config) )
     {
         return false;
     }
@@ -122,17 +128,39 @@ void DoorBehavior::reset()
     initial_guess_utils_.reset();
     retry_counter_ = 0;
     current_.vel = Velocity2D();
+    laser_pts_.clear();
 }
 
 void DoorBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
 {
-    fb.output_data->markers.push_back(behavior_name_marker_);
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
-    context_data_ = &context_data;
-    current_.vel = context_data_->input_data->current_vel;
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), behavior_name_marker_);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), context_data.getPlanMarkers());
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), footprint_marker_);
 
-    if ( !findDoorFrameMap(fb.output_data->markers) )
+    context_data_ = &context_data;
+
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+             required_inputs_map_.at("velocity"), current_.vel) ||
+         !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+             required_inputs_map_.at("localisation"), localisation_tf_) ||
+         !LaserInputData::getLaserPts(context_data.input_data_map,
+             required_inputs_map_.at("laser"), laser_pts_) )
+    {
+        std::cout << Print::Err << Print::Time() << "[DoorBehavior] "
+                  << "Could not get velocity, localization tf and/or laser."
+                  << Print::End << std::endl;
+        CmdVelOutputData::setTrajectory(
+                fb.output_data_map, calcRampedTrajectory(current_.vel));
+        fb.success = false;
+        return;
+    }
+
+    if ( !findDoorFrameMap() )
     {
         std::cerr << Print::Err << Print::Time() << "[DoorBehavior] "
                   << "Could not find door frame from semantic map"
@@ -176,20 +204,19 @@ void DoorBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb
     float time_threshold = remaining_time * 0.8f;
 
     Optimiser::conjugateGradientDescent(time_threshold, cf_, u_);
-    fb.output_data->trajectory = Model::calcTrajectory(current_, u_, sample_times_);
+    Trajectory traj = Model::calcTrajectory(current_, u_, sample_times_);
+    CmdVelOutputData::setTrajectory(fb.output_data_map, traj);
 
     std::chrono::duration<float> time_taken = std::chrono::steady_clock::now() - start_time;
     // std::cout << time_taken.count() * 1000.0f << " ms" << std::endl;
 
     /* visualize features using markers */
-    fb.output_data->markers.push_back(door_.asMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), door_.asMarker(
                 "robot", 0.0f, 0.0f, 1.0f, 1.0f, 0.07f));
-    fb.output_data->markers.push_back(ideal_path_.asMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), ideal_path_.asMarker(
                 "robot", 0.0f, 0.33f, 0.0f, 1.0f, 0.05f));
-    std::vector<visualization_msgs::Marker> plan_markers = context_data.getPlanMarkers();
-    fb.output_data->markers.insert(fb.output_data->markers.end(),
-            plan_markers.begin(), plan_markers.end());
-    fb.output_data->markers.push_back(footprint_marker_);
 
     retry_counter_ = 0;
     fb.success = true;
@@ -202,7 +229,7 @@ void DoorBehavior::calcInitialU(std::vector<float>& u, BehaviorFeedback& fb)
         initial_guess_utils_.calcInitialGuessIntermittently(
                 current_, u, initial_guess_trajectory_);
         addInitialGuessTrajectoryMarkers(
-                initial_guess_trajectory_, fb.output_data->markers);
+                initial_guess_trajectory_, fb.output_data_map);
     }
     else
     {
@@ -225,7 +252,7 @@ float DoorBehavior::calcCost(const std::vector<float>& u)
     {
         /* CONSTRAINTS */
         cost += weight_laser_pts_repulsion_ *
-                calcLaserPtsCost(context_data_->input_data->laser_pts, tp.pos, inflation_dist_);
+                calcLaserPtsCost(laser_pts_, tp.pos, inflation_dist_);
 
         /* vel limit soft constraints */
         cost += calcVelLimitCost(tp.vel);
@@ -246,12 +273,22 @@ bool DoorBehavior::preConditionSatisfied(
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[DoorBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(action);
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const Area::ConstPtr& door_area = goto_plan[goto_plan_index];
     const Area::ConstPtr& prev_area = goto_plan[goto_plan_index-1];
-    const Pose2D robot_pose = context_data.input_data->localisation_tf.asPose2D();
+    const Pose2D robot_pose = loc_tf.asPose2D();
     Point2D robot_pt = robot_pose.position();
 
     // if door is first area; use robot_pt otherwise use prev area center
@@ -294,6 +331,15 @@ bool DoorBehavior::postConditionSatisfied(const ContextData& context_data) const
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[DoorBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
     const GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(
              context_data.plan[context_data.plan_index]);
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
@@ -302,7 +348,7 @@ bool DoorBehavior::postConditionSatisfied(const ContextData& context_data) const
     const Polygon2D& door_polygon = door_area->getPolygon();
     LineSegment2D door(door_polygon[0], door_polygon[1]);
 
-    TransformMatrix2D robot_to_global_tf = context_data.input_data->localisation_tf.calcInverse();
+    TransformMatrix2D robot_to_global_tf = loc_tf.calcInverse();
     LineSegment2D door_local = robot_to_global_tf * door;
 
     return ( door_local.start.x < 0 &&
@@ -310,11 +356,11 @@ bool DoorBehavior::postConditionSatisfied(const ContextData& context_data) const
              door_local.center().x < -post_door_min_dist_x_ );
 }
 
-bool DoorBehavior::findDoorFrameMap(std::vector<visualization_msgs::Marker>& markers)
+bool DoorBehavior::findDoorFrameMap()
 {
     const GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(
              context_data_->plan[context_data_->plan_index]);
-    TransformMatrix2D robot_to_global_tf = context_data_->input_data->localisation_tf.calcInverse();
+    TransformMatrix2D robot_to_global_tf = localisation_tf_.calcInverse();
 
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
@@ -337,7 +383,7 @@ bool DoorBehavior::updateDoorFrame()
     Point2D door_right = ( door_.start.angle() > door_.end.angle() ) ? door_.end : door_.start;
 
     PointCloud2D left_pts, right_pts;
-    for ( const Point2D& pt : context_data_->input_data->laser_pts )
+    for ( const Point2D& pt : laser_pts_ )
     {
         if ( pt.distTo(door_left) < half_door_size )
         {
@@ -433,7 +479,8 @@ void DoorBehavior::calcAveragedDoorFrame()
 
 void DoorBehavior::failWithRetry(BehaviorFeedback& fb, const std::string& failure_code)
 {
-    fb.output_data->trajectory = calcRampedTrajectory(current_.vel);
+    CmdVelOutputData::setTrajectory(
+            fb.output_data_map, calcRampedTrajectory(current_.vel));
     retry_counter_ ++;
     if ( retry_counter_ > retry_threshold_ )
     {

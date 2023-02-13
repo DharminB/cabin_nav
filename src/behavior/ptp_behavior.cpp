@@ -5,6 +5,11 @@
 
 #include <cabin_nav/mpc/optimiser.h>
 #include <cabin_nav/mpc/model.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/laser_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/structs/context_data.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/ptp_behavior.h>
@@ -32,7 +37,8 @@ bool PTPBehavior::configure(const YAML::Node& config)
          !parseGoalStateWeights(config) ||
          !parseNormalStateWeights(config) ||
          !parseFootprint(config) ||
-         !parseRequiredInputs(config) )
+         !parseRequiredInputs(config) ||
+         !parseOutputs(config) )
     {
         return false;
     }
@@ -120,6 +126,7 @@ void PTPBehavior::reset()
     std::fill(u_.begin(), u_.end(), 0.0f);
     initial_guess_utils_.reset();
     initial_guess_trajectory_.clear();
+    laser_pts_.clear();
 
     /* moving obstacle */
     future_obstacles_.clear();
@@ -131,29 +138,55 @@ void PTPBehavior::reset()
 
 void PTPBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
 {
-    fb.output_data->markers.push_back(behavior_name_marker_);
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), behavior_name_marker_);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), context_data.getPlanMarkers());
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), footprint_marker_);
+
     context_data_ = &context_data;
-    current_.vel = context_data_->input_data->current_vel;
+
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+             required_inputs_map_.at("velocity"), current_.vel) ||
+         !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+             required_inputs_map_.at("localisation"), localisation_tf_) ||
+         !LaserInputData::getLaserPts(context_data.input_data_map,
+             required_inputs_map_.at("laser"), laser_pts_) )
+    {
+        std::cout << Print::Err << Print::Time() << "[PTPBehavior] "
+                  << "Could not get velocity and/or localization tf."
+                  << Print::End << std::endl;
+        CmdVelOutputData::setTrajectory(
+                fb.output_data_map, calcRampedTrajectory(current_.vel));
+        fb.success = false;
+        return;
+    }
 
     if ( use_dynamic_obstacles_ )
     {
+        std::vector<visualization_msgs::Marker> markers;
         std::vector<MovingCircle> moving_obstacles;
         obstacle_tracker_.calcObstacles(
-                context_data_->input_data->localisation_tf.asPose2D(),
-                context_data_->input_data->laser_pts,
-                fb.output_data->markers, moving_obstacles, static_pts_);
+                localisation_tf_.asPose2D(), laser_pts_,
+                markers, moving_obstacles, static_pts_);
         obstacle_tracker_.calcFutureObstacles(
                 initial_guess_sample_times_, moving_obstacles,
                 future_initial_guess_obstacles_);
         obstacle_tracker_.calcFutureObstacles(
                 sample_times_, moving_obstacles, future_obstacles_);
+        VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+                outputs_map_.at("markers"), markers);
     }
 
     goal_ = calcGoal(context_data, fb);
 
-    planGeometricPath(fb.output_data->markers);
+    std::vector<visualization_msgs::Marker> markers;
+    planGeometricPath(markers);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), markers);
     calcInitialU(u_, fb);
 
     std::chrono::duration<float> init_u_time_duration = std::chrono::steady_clock::now() - start_time;
@@ -162,18 +195,14 @@ void PTPBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
     float time_threshold = remaining_time * 0.8f;
 
     Optimiser::conjugateGradientDescent(time_threshold, cf_, u_);
-    fb.output_data->trajectory = Model::calcTrajectory(
-            current_, u_, sample_times_, is_unicycle_);
+    Trajectory traj = Model::calcTrajectory(current_, u_, sample_times_, is_unicycle_);
+    CmdVelOutputData::setTrajectory(fb.output_data_map, traj);
 
     std::chrono::duration<float> time_taken = std::chrono::steady_clock::now() - start_time;
     // std::cout << time_taken.count() * 1000.0f << " ms" << std::endl;
 
-    fb.output_data->markers.push_back(goal_.pos.asMarker("robot", 0.0f, 1.0f, 0.0f));
-    std::vector<visualization_msgs::Marker> plan_markers = context_data.getPlanMarkers();
-    fb.output_data->markers.insert(fb.output_data->markers.end(),
-            plan_markers.begin(), plan_markers.end());
-
-    fb.output_data->markers.push_back(footprint_marker_);
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), goal_.pos.asMarker("robot", 0.0f, 1.0f, 0.0f));
 
     fb.success = true;
 }
@@ -185,7 +214,7 @@ void PTPBehavior::calcInitialU(std::vector<float>& u, BehaviorFeedback& fb)
         initial_guess_utils_.calcInitialGuessIntermittently(
                 current_, u, initial_guess_trajectory_);
         addInitialGuessTrajectoryMarkers(
-                initial_guess_trajectory_, fb.output_data->markers);
+                initial_guess_trajectory_, fb.output_data_map);
     }
     else
     {
@@ -245,7 +274,7 @@ float PTPBehavior::calcCost(const std::vector<float>& u)
         {
             cost += weight_laser_pts_repulsion_ *
                     calcLaserPtsCostVelBased(
-                            context_data_->input_data->laser_pts, trajectory[i],
+                            laser_pts_, trajectory[i],
                             min_inflation_dist_, max_inflation_dist_);
         }
 
@@ -302,7 +331,7 @@ TrajectoryPoint PTPBehavior::calcGoal(
     }
 
     /* calculate goal in local frame */
-    TransformMatrix2D tf = context_data_->input_data->localisation_tf.calcInverse();
+    TransformMatrix2D tf = localisation_tf_.calcInverse();
     return tf * goto_action->getIntermediateGoal();
 }
 
@@ -345,7 +374,7 @@ void PTPBehavior::planGeometricPath(std::vector<visualization_msgs::Marker>& mar
 
     Path geometric_path;
     if ( geometric_planner_.plan(start.pos, goal_.pos,
-                context_data_->input_data->laser_pts, geometric_path, markers) )
+                laser_pts_, geometric_path, markers) )
     {
         markers.push_back(GCUtils::convertGeometricPathToMarker(
                     geometric_path, "robot", 0.0f, 0.33f, 0.0f, 1.0f, 0.02f));

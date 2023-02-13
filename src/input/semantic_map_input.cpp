@@ -4,6 +4,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/semantic_map_input.h>
+#include <cabin_nav/input/semantic_map_input_data.h>
 
 using kelo::geometry_common::TransformMatrix2D;
 using Parser = kelo::yaml_common::Parser2;
@@ -30,13 +31,27 @@ bool SemanticMapInput::configure(const YAML::Node& config)
     return semantic_map_->initialise(map_file_path);
 }
 
-bool SemanticMapInput::getData(
-        InputData::Ptr& input_data,
-        const std::string& input_name)
+bool SemanticMapInput::getData(InputData::Ptr& input_data)
 {
-    if ( input_data->semantic_map == nullptr )  // for first time
+    if ( input_data == nullptr ) // for first time
     {
-        input_data->semantic_map = semantic_map_;
+        input_data = std::make_shared<SemanticMapInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[SemanticMapInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    SemanticMapInputData::Ptr semantic_map_input_data =
+        std::static_pointer_cast<SemanticMapInputData>(input_data);
+
+    if ( semantic_map_input_data->semantic_map == nullptr )
+    {
+        semantic_map_input_data->semantic_map = semantic_map_;
     }
 
     return true;
@@ -50,6 +65,12 @@ void SemanticMapInput::activate()
 void SemanticMapInput::deactivate()
 {
     is_active_ = false;
+}
+
+std::ostream& SemanticMapInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

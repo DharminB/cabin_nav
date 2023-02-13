@@ -28,9 +28,6 @@ class StandstillBehavior : public Behavior
 
     private:
 
-        float goal_tolerance_linear_{0.1f};
-        float goal_tolerance_angular_{0.3f};
-
         float calcCost(const std::vector<float>& u);
 
         void calcInitialU(std::vector<float>& u, BehaviorFeedback& fb);

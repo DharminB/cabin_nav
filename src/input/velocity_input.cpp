@@ -3,6 +3,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/velocity_input.h>
+#include <cabin_nav/input/velocity_input_data.h>
 
 using kelo::geometry_common::XYTheta;
 using GCUtils = kelo::geometry_common::Utils;
@@ -27,11 +28,29 @@ bool VelocityInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool VelocityInput::getData(InputData::Ptr& input_data, const std::string& input_name)
+bool VelocityInput::getData(InputData::Ptr& input_data)
 {
     std::lock_guard<std::mutex> cmd_vel_guard(cmd_vel_cb_mutex_);
     std::lock_guard<std::mutex> odom_guard(odom_cb_mutex_);
 
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<VelocityInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[VelocityInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    VelocityInputData::Ptr velocity_input_data =
+        std::static_pointer_cast<VelocityInputData>(input_data);
+
+    velocity_input_data->odom_vel = odom_vel_;
+    velocity_input_data->prev_cmd_vel = prev_cmd_vel_;
     /* applyAccLimits is a misnomer here. Basically this function just clips the
      * prev_cmd_vel_ around odom_vel_ with certain tolerance_ (which is a weird
      * way is like applying acceleration limits to clip target velocity). This
@@ -44,7 +63,7 @@ bool VelocityInput::getData(InputData::Ptr& input_data, const std::string& input
      * loop which can be hazardous
      * Thus, by having some tolerance will counter the delay of odom but still
      * reduce the amount of danger caused by fully open loop control. */
-    input_data->current_vel = GCUtils::applyAccLimits(
+    velocity_input_data->vel = GCUtils::applyAccLimits(
             prev_cmd_vel_, odom_vel_, tolerance_, 1.0f);
 
     return true;
@@ -99,6 +118,12 @@ void VelocityInput::cmdVelCb(const geometry_msgs::Twist::ConstPtr& msg)
     prev_cmd_vel_.x = msg->linear.x;
     prev_cmd_vel_.y = msg->linear.y;
     prev_cmd_vel_.theta = msg->angular.z;
+}
+
+std::ostream& VelocityInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

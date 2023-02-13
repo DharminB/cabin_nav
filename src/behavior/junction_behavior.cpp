@@ -7,6 +7,11 @@
 #include <cabin_nav/structs/context_data.h>
 #include <cabin_nav/mpc/optimiser.h>
 #include <cabin_nav/mpc/model.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/laser_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/utils/geometric_planner.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/junction_behavior.h>
@@ -33,7 +38,8 @@ bool JunctionBehavior::configure(const YAML::Node& config)
          !parseVelLimitWeights(config) ||
          !parseGoalStateWeights(config) ||
          !parseFootprint(config) ||
-         !parseRequiredInputs(config) )
+         !parseRequiredInputs(config) ||
+         !parseOutputs(config) )
     {
         return false;
     }
@@ -123,15 +129,37 @@ void JunctionBehavior::reset()
     initial_guess_utils_.reset();
     current_.vel = Velocity2D();
     goal_ = TrajectoryPoint();
+    laser_pts_.clear();
 }
 
 void JunctionBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
 {
-    fb.output_data->markers.push_back(behavior_name_marker_);
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), behavior_name_marker_);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), context_data.getPlanMarkers());
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), footprint_marker_);
+
     context_data_ = &context_data;
-    current_.vel = context_data_->input_data->current_vel;
+
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+             required_inputs_map_.at("velocity"), current_.vel) ||
+         !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+             required_inputs_map_.at("localisation"), localisation_tf_) ||
+         !LaserInputData::getLaserPts(context_data.input_data_map,
+             required_inputs_map_.at("laser"), laser_pts_) )
+    {
+        std::cout << Print::Err << Print::Time() << "[JunctionBehavior] "
+                  << "Could not get velocity and/or localization tf."
+                  << Print::End << std::endl;
+        CmdVelOutputData::setTrajectory(
+                fb.output_data_map, calcRampedTrajectory(current_.vel));
+        fb.success = false;
+        return;
+    }
 
     ideal_path_ = calcIdealPath(context_data);
     goal_.pos = calcGoal();
@@ -144,19 +172,17 @@ void JunctionBehavior::runOnce(const ContextData& context_data, BehaviorFeedback
     float time_threshold = remaining_time * 0.8f;
 
     Optimiser::conjugateGradientDescent(time_threshold, cf_, u_);
-    fb.output_data->trajectory = Model::calcTrajectory(
-            current_, u_, sample_times_, is_unicycle_);
+    Trajectory traj = Model::calcTrajectory(current_, u_, sample_times_, is_unicycle_);
+    CmdVelOutputData::setTrajectory(fb.output_data_map, traj);
     std::chrono::duration<float> time_taken = std::chrono::steady_clock::now() - start_time;
     // std::cout << time_taken.count() * 1000.0f << " ms" << std::endl;
 
     /* visualize features using markers */
-    fb.output_data->markers.push_back(GCUtils::convertGeometricPathToMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), GCUtils::convertGeometricPathToMarker(
                 ideal_path_, "robot", 0.0f, 0.33f, 0.0f, 1.0f, 0.02f));
-    fb.output_data->markers.push_back(goal_.pos.asMarker("robot", 0.0f, 1.0f, 0.0f));
-    std::vector<visualization_msgs::Marker> plan_markers = context_data.getPlanMarkers();
-    fb.output_data->markers.insert(fb.output_data->markers.end(),
-            plan_markers.begin(), plan_markers.end());
-    fb.output_data->markers.push_back(footprint_marker_);
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), goal_.pos.asMarker("robot", 0.0f, 1.0f, 0.0f));
 
     fb.success = true;
 }
@@ -168,7 +194,7 @@ void JunctionBehavior::calcInitialU(std::vector<float>& u, BehaviorFeedback& fb)
         initial_guess_utils_.calcInitialGuessIntermittently(
                 current_, u, initial_guess_trajectory_);
         addInitialGuessTrajectoryMarkers(
-                initial_guess_trajectory_, fb.output_data->markers);
+                initial_guess_trajectory_, fb.output_data_map);
     }
     else
     {
@@ -192,8 +218,7 @@ float JunctionBehavior::calcCost(const std::vector<float>& u)
     {
         /* CONSTRAINTS */
         cost += weight_laser_pts_repulsion_ *
-                calcLaserPtsCost(
-                        context_data_->input_data->laser_pts, tp.pos, inflation_dist_);
+                calcLaserPtsCost(laser_pts_, tp.pos, inflation_dist_);
 
         /* vel limit soft constraints */
         cost += calcVelLimitCost(tp.vel);
@@ -217,6 +242,19 @@ bool JunctionBehavior::preConditionSatisfied(
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    Velocity2D curr_vel;
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+                required_inputs_map_.at("velocity"), curr_vel) ||
+         !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[JunctionBehavior] "
+                  << "Could not get velocity and/or localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(action);
 
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
@@ -229,13 +267,13 @@ bool JunctionBehavior::preConditionSatisfied(
         return true;
     }
     Path ideal_path = calcIdealPath(context_data);
-    Pose2D ideal_path_start = context_data.input_data->localisation_tf * ideal_path.front();
+    Pose2D ideal_path_start = loc_tf * ideal_path.front();
 
-    const Pose2D robot_pose = context_data.input_data->localisation_tf.asPose2D();
+    const Pose2D robot_pose = loc_tf.asPose2D();
 
     if ( !Utils::isWithinTolerance(robot_pose, ideal_path_start,
                 goal_tolerance_linear_pre_, goal_tolerance_angular_pre_) ||
-         context_data.input_data->current_vel.x > max_vel_.x )
+         curr_vel.x > max_vel_.x )
     {
         goto_action->setIntermediateGoal(
                 TrajectoryPoint(ideal_path_start, Velocity2D(max_vel_.x)));
@@ -256,6 +294,16 @@ bool JunctionBehavior::postConditionSatisfied(const ContextData& context_data) c
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[JunctionBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     const GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(
             context_data.plan[context_data.plan_index]);
 
@@ -270,9 +318,9 @@ bool JunctionBehavior::postConditionSatisfied(const ContextData& context_data) c
     }
 
     Path ideal_path = calcIdealPath(context_data);
-    Pose2D ideal_path_end = context_data.input_data->localisation_tf * ideal_path.back();
+    Pose2D ideal_path_end = loc_tf * ideal_path.back();
 
-    const Pose2D robot_pose = context_data.input_data->localisation_tf.asPose2D();
+    const Pose2D robot_pose = loc_tf.asPose2D();
 
     if ( !Utils::isWithinTolerance(robot_pose, ideal_path_end,
                 goal_tolerance_linear_post_, goal_tolerance_angular_post_) )
@@ -312,6 +360,10 @@ Path JunctionBehavior::calcIdealPath(const ContextData& context_data) const
     const GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(
             context_data.plan[context_data.plan_index]);
 
+    TransformMatrix2D loc_tf;
+    LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf);
+
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     const Area::ConstPtr& current_area = goto_plan[goto_plan_index];
@@ -319,7 +371,7 @@ Path JunctionBehavior::calcIdealPath(const ContextData& context_data) const
     const Area::ConstPtr& prev_area = goto_plan[goto_plan_index-1];
 
     /* calculate goal in local frame */
-    TransformMatrix2D robot_to_global_tf = context_data.input_data->localisation_tf.calcInverse();
+    TransformMatrix2D robot_to_global_tf = loc_tf.calcInverse();
 
     PointVec2D control_points(3);
     LineSegment2D l(current_area->getCenter(), prev_area->getCenter());

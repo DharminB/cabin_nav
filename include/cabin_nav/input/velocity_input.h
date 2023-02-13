@@ -19,17 +19,20 @@ class VelocityInput : public Input
     public:
 
         VelocityInput():
+            Input("velocity"),
             nh_("~") {}
 
         virtual ~VelocityInput() = default;
 
         bool configure(const YAML::Node& config);
 
-        bool getData(InputData::Ptr& input_data, const std::string& input_name);
+        bool getData(InputData::Ptr& input_data);
 
         void activate();
 
         void deactivate();
+
+        std::ostream& write(std::ostream& out) const;
 
     protected:
 

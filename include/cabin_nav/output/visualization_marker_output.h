@@ -3,7 +3,6 @@
 
 #include <ros/ros.h>
 
-#include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 
 #include <cabin_nav/output/output_data.h>
@@ -16,20 +15,24 @@ class VisualizationMarkerOutput : public Output
     public:
 
         VisualizationMarkerOutput():
+            Output("visualization_marker"),
             nh_("~") {}
 
         virtual ~VisualizationMarkerOutput() = default;
+
+        void initializeOutputData(OutputData::Ptr& output_data) const;
 
         bool configure(const YAML::Node& config);
 
         bool setData(
                 const OutputData::Ptr& output_data,
-                const InputData::Ptr& input_data,
-                const std::string& output_name);
+                const InputData::Map& input_data_map);
 
         void start() override;
 
         void stop() override;
+
+        std::ostream& write(std::ostream& out) const;
 
     protected:
 

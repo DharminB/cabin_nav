@@ -1,6 +1,8 @@
 #ifndef CABIN_behavior_H
 #define CABIN_behavior_H
 
+#include <unordered_map>
+
 #include <utility>
 #include <functional>
 
@@ -14,6 +16,7 @@
 #include <geometry_common/Box2D.h>
 
 #include <cabin_nav/structs/trajectory_point.h>
+#include <cabin_nav/output/output_data.h>
 
 namespace cabin {
 
@@ -86,6 +89,9 @@ class Behavior
         std::map<std::string, std::string> failure_to_recovery_map_;
 
         std::vector<std::string> required_inputs_;
+        std::unordered_map<std::string, std::string> required_inputs_map_;
+
+        std::unordered_map<std::string, std::string> outputs_map_;
 
         visualization_msgs::Marker behavior_name_marker_;
 
@@ -130,6 +136,8 @@ class Behavior
         bool parseFailureToRecoveryMap(const YAML::Node& config);
 
         bool parseRequiredInputs(const YAML::Node& config);
+
+        bool parseOutputs(const YAML::Node& config);
 
         /*
          * Cost function helpers
@@ -206,7 +214,7 @@ class Behavior
 
         void addInitialGuessTrajectoryMarkers(
                 const Trajectory& traj,
-                std::vector<visualization_msgs::Marker>& markers) const;
+                OutputData::Map& output_data_map) const;
 
     private:
 

@@ -42,17 +42,17 @@ class GoToAction: public Action
 
         void setGoal(const kelo::geometry_common::Pose2D& goal);
 
-        kelo::geometry_common::Pose2D getGoal();
+        kelo::geometry_common::Pose2D getGoal() const;
 
-        TrajectoryPoint getIntermediateGoal();
+        TrajectoryPoint getIntermediateGoal() const;
 
-        const std::vector<Area::ConstPtr>& getGoToPlan();
+        const std::vector<Area::ConstPtr>& getGoToPlan() const;
 
-        size_t getGoToPlanIndex();
+        size_t getGoToPlanIndex() const;
 
-        bool isDuringTransition();
+        bool isDuringTransition() const;
 
-        bool isDuringRecovery();
+        bool isDuringRecovery() const;
 
         void setIntermediateGoal(const TrajectoryPoint& intermediate_goal);
 
@@ -88,6 +88,8 @@ class GoToAction: public Action
 
         void plan(const ContextData& context_data,
                   const kelo::geometry_common::Pose2D& start);
+
+        bool reachedGoal(const ContextData& context_data) const;
 
         bool fillRequiredBehaviorNames(
                 const YAML::Node& config,

@@ -53,13 +53,17 @@ class Action
 
     protected:
 
-        Action(const std::string& type):
-            type_(type) {};
-
         /**
          * @brief Should be filled in Action::configure() function
          */
         std::vector<std::string> required_behavior_names_;
+
+        std::unordered_map<std::string, std::string> inputs_map_;
+
+        Action(const std::string& type):
+            type_(type) {};
+
+        bool parseInputs(const YAML::Node& config);
 
     private:
 

@@ -313,6 +313,18 @@ float Utils::calcDeterminant(
     return (l.end - l.start).scalarCrossProduct(p - l.start);
 }
 
+std::unordered_map<std::string, std::string> Utils::convertMapToUnorderedMap(
+        const std::map<std::string, std::string>& ordered_map)
+{
+    std::unordered_map<std::string, std::string> unordered_map_str;
+    unordered_map_str.reserve(ordered_map.size());
+    for ( auto itr = ordered_map.begin(); itr != ordered_map.end(); itr ++ )
+    {
+        unordered_map_str[itr->first] = itr->second;
+    }
+    return unordered_map_str;
+}
+
 nav_msgs::Path Utils::convertToROSPath(
         const Trajectory& trajectory,
         const std::string& frame)

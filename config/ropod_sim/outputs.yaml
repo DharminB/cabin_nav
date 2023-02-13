@@ -1,7 +1,7 @@
 cmd_vel:
     type: "CMD_VEL"
     topic: "/ropod/cmd_vel"
-    robot_frame: "/ropod/base_link"
+    robot_frame: "ropod/base_link"
     rate: 20.0
     footprint:
         - {x: 0.3, y: 0.3}
@@ -19,7 +19,7 @@ cmd_vel:
 markers:
     type: "VISUALIZATION_MARKER"
     topic: "/cabin_navigator/behavior_markers"
-    robot_frame: "/ropod/base_link"
+    robot_frame: "ropod/base_link"
     global_frame: "map"
     marker_namespace: "behavior"
     use_refresh_style: false

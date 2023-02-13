@@ -23,3 +23,7 @@ goto:
         - door_docked
         - door_to_corridor_transition_docked
         - open_area_docked
+    inputs:
+        localisation: "localisation"
+        semantic_map: "semantic_map"
+

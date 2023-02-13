@@ -2,6 +2,7 @@
 #define CABIN_UTILS_H
 
 #include <vector>
+#include <unordered_map>
 #include <string>
 
 #include <nav_msgs/Path.h>
@@ -144,6 +145,9 @@ class Utils
         static float calcDeterminant(
                 const kelo::geometry_common::LineSegment2D& l,
                 const kelo::geometry_common::Point2D& p);
+
+        static std::unordered_map<std::string, std::string> convertMapToUnorderedMap(
+                const std::map<std::string, std::string>& ordered_map);
 
         static nav_msgs::Path convertToROSPath(
                 const Trajectory& trajectory,

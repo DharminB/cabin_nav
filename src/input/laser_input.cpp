@@ -3,6 +3,7 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/input/laser_input.h>
+#include <cabin_nav/input/laser_input_data.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::Point3D;
@@ -27,9 +28,25 @@ bool LaserInput::configure(const YAML::Node& config)
     return true;
 }
 
-bool LaserInput::getData(InputData::Ptr& input_data, const std::string& input_name)
+bool LaserInput::getData(InputData::Ptr& input_data)
 {
     std::lock_guard<std::mutex> guard(mutex_);
+
+    if ( input_data == nullptr ) // for first iteration
+    {
+        input_data = std::make_shared<LaserInputData>();
+    }
+
+    if ( input_data->getType() != getType() )
+    {
+        std::cout << Print::Err << Print::Time() << "[LaserInput] "
+                  << "input_data's type is not \"" << getType() << "\"."
+                  << Print::End << std::endl;
+        return false;
+    }
+
+    LaserInputData::Ptr laser_input_data =
+        std::static_pointer_cast<LaserInputData>(input_data);
 
     if ( !is_tf_valid_ )
     {
@@ -45,17 +62,18 @@ bool LaserInput::getData(InputData::Ptr& input_data, const std::string& input_na
 
     PointCloud3D cloud = GCUtils::convertToPointCloud<Point3D>(scan_);
     tf_.transform(cloud);
-    input_data->laser_pts.clear();
-    input_data->laser_pts.reserve(cloud.size());
+    laser_input_data->laser_pts_3d = cloud;
+    laser_input_data->laser_pts.clear();
+    laser_input_data->laser_pts.reserve(cloud.size());
     for ( const Point3D& pt : cloud )
     {
-        input_data->laser_pts.push_back(Point2D(pt.x, pt.y));
+        laser_input_data->laser_pts.push_back(Point2D(pt.x, pt.y));
     }
 
     /* sanity check */
-    if ( input_data->laser_pts.empty() )
+    if ( laser_input_data->laser_pts_3d.empty() )
     {
-        std::cerr << Print::Warn << Print::Time() << "[LaserInput] "
+        std::cout << Print::Warn << Print::Time() << "[LaserInput] "
                   << "No points"
                   << Print::End << std::endl;
         return false;
@@ -120,6 +138,12 @@ bool LaserInput::initialiseTransformMat(const std::string& frame_id)
                   << ex.what() << Print::End << std::endl;
         return false;
     }
+}
+
+std::ostream& LaserInput::write(std::ostream& out) const
+{
+    out << "<Input type: " << getType() << ">";
+    return out;
 }
 
 } // namespace cabin

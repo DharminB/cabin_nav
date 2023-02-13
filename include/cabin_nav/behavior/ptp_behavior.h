@@ -1,6 +1,8 @@
 #ifndef CABIN_PTP_behavior_H
 #define CABIN_PTP_behavior_H
 
+#include <geometry_common/TransformMatrix2D.h>
+
 #include <cabin_nav/behavior/behavior.h>
 #include <cabin_nav/utils/initial_guess_utils.h>
 #include <cabin_nav/utils/obstacle_tracker.h>
@@ -36,8 +38,10 @@ class PTPBehavior : public Behavior
         const ContextData* context_data_{nullptr};
         TrajectoryPoint goal_;
         TrajectoryPoint current_;
+        kelo::geometry_common::TransformMatrix2D localisation_tf_;
         bool is_unicycle_{false};
         std::vector<float> u_;
+        kelo::geometry_common::PointCloud2D laser_pts_;
         CostFunction cf_;
 
         bool shorten_control_horizon_{true};

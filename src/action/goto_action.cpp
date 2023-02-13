@@ -4,6 +4,8 @@
 
 #include <cabin_nav/utils/print.h>
 #include <cabin_nav/structs/context_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/semantic_map_input_data.h>
 #include <cabin_nav/action/goto_action.h>
 
 using kelo::geometry_common::Pose2D;
@@ -17,6 +19,11 @@ bool GoToAction::configure(
         const YAML::Node& params,
         const ContextData& context_data)
 {
+    if ( !parseInputs(config) )
+    {
+        return false;
+    }
+
     /* read tolerance from config */
     goal_tolerance_linear_ = Parser::get<float>(config, "goal_tolerance_linear", 0.2f);
     goal_tolerance_angular_ = Parser::get<float>(config, "goal_tolerance_angular", 0.2f);
@@ -47,7 +54,16 @@ bool GoToAction::configure(
         return false;
     }
 
-    TransformMatrix2D tf = context_data.input_data->localisation_tf;
+    TransformMatrix2D tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                inputs_map_.at("localisation"), tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[GoToAction] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     if ( frame == robot_frame )
     {
         tf.transform(goal_);
@@ -112,15 +128,20 @@ Status GoToAction::recursiveRecommendNextBehavior(
     /* when goto plan is empty or robot is almost at goal */
     if ( goto_plan_.size() - goto_plan_index_ == 0 )
     {
-        if ( behavior_map.at("standstill")->preConditionSatisfied(
-                    context_data, context_data.plan[context_data.plan_index]) )
+        if ( reachedGoal(context_data) )
         {
             goto_plan_index_ ++;
             return Status::SUCCESS;
         }
-        is_during_transition_ = true;
-        if ( (context_data.input_data->semantic_map == nullptr ||
-              !context_data.input_data->semantic_map->isValid()) &&
+        else
+        {
+            setIntermediateGoal(TrajectoryPoint(goal_));
+            enableIsDuringTransition();
+        }
+        SemanticMap::ConstPtr semantic_map{nullptr};
+        if ( (!SemanticMapInputData::getSemanticMap(context_data.input_data_map,
+                    inputs_map_.at("semantic_map"), semantic_map) ||
+             !semantic_map->isValid()) &&
              behavior_map.find("ptp_occ_grid") != behavior_map.end() )
         {
             next_behavior = "ptp_occ_grid";
@@ -275,15 +296,33 @@ std::string GoToAction::getBehaviorNameBasedOnRequiredInputs(
 
 void GoToAction::plan(const ContextData& context_data, const Pose2D& start)
 {
-    if ( context_data.input_data->semantic_map == nullptr ||
-         !context_data.input_data->semantic_map->isValid() )
+    SemanticMap::ConstPtr semantic_map{nullptr};
+    if ( !SemanticMapInputData::getSemanticMap(context_data.input_data_map,
+                inputs_map_.at("semantic_map"), semantic_map) ||
+         !semantic_map->isValid() )
     {
         return;
     }
 
-    goto_plan_ = context_data.input_data->semantic_map->plan(
-            context_data.input_data->semantic_map->getAreaContainingPoint(start.position()),
-            context_data.input_data->semantic_map->getAreaContainingPoint(goal_.position()));
+    goto_plan_ = semantic_map->plan(
+            semantic_map->getAreaContainingPoint(start.position()),
+            semantic_map->getAreaContainingPoint(goal_.position()));
+}
+
+bool GoToAction::reachedGoal(const ContextData& context_data) const
+{
+    TransformMatrix2D tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                inputs_map_.at("localisation"), tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[GoToAction] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return true;
+    }
+    const Pose2D robot_pose = tf.asPose2D();
+    return Utils::isWithinTolerance(
+            robot_pose, goal_, goal_tolerance_linear_, goal_tolerance_angular_);
 }
 
 bool GoToAction::fillRequiredBehaviorNames(
@@ -418,32 +457,32 @@ void GoToAction::setGoal(const Pose2D& goal)
     goal_ = goal;
 }
 
-Pose2D GoToAction::getGoal()
+Pose2D GoToAction::getGoal() const
 {
     return goal_;
 }
 
-TrajectoryPoint GoToAction::getIntermediateGoal()
+TrajectoryPoint GoToAction::getIntermediateGoal() const
 {
     return intermediate_goal_;
 }
 
-const std::vector<Area::ConstPtr>& GoToAction::getGoToPlan()
+const std::vector<Area::ConstPtr>& GoToAction::getGoToPlan() const
 {
     return goto_plan_;
 }
 
-size_t GoToAction::getGoToPlanIndex()
+size_t GoToAction::getGoToPlanIndex() const
 {
     return goto_plan_index_;
 }
 
-bool GoToAction::isDuringTransition()
+bool GoToAction::isDuringTransition() const
 {
     return is_during_transition_;
 }
 
-bool GoToAction::isDuringRecovery()
+bool GoToAction::isDuringRecovery() const
 {
     return is_during_recovery_;
 }

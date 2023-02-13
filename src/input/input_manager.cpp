@@ -37,7 +37,7 @@ bool InputManager::configure(const YAML::Node& config)
         if ( inputs_.count(input_name) > 0 )
         {
             std::cerr << Print::Err << Print::Time() << "[InputManager] "
-                      << "Input config file contains multiple inputs with same name"
+                      << "Input config file contains multiple inputs with same name "
                       << input_name
                       << Print::End << std::endl;
             return false;
@@ -55,13 +55,26 @@ bool InputManager::configure(const YAML::Node& config)
     return true;
 }
 
-bool InputManager::getData(InputData::Ptr input_data)
+void InputManager::initializeInputData(
+        InputData::Map& input_data,
+        std::unordered_map<std::string, bool> active_inputs)
 {
     for ( auto inputs_itr = inputs_.begin(); inputs_itr != inputs_.end(); inputs_itr ++ )
     {
-        if ( inputs_itr->second->isActive() )
+        const std::string& input_name = inputs_itr->first;
+        input_names_.push_back(input_name);
+        input_data[input_name] = nullptr;
+        active_inputs[input_name] = false;
+    }
+}
+
+bool InputManager::getData(InputData::Map& input_data)
+{
+    for ( const std::string& input_name : input_names_ )
+    {
+        if ( inputs_[input_name]->isActive() )
         {
-            if ( !inputs_itr->second->getData(input_data, inputs_itr->first) )
+            if ( !inputs_[input_name]->getData(input_data[input_name]) )
             {
                 return false;
             }
@@ -70,32 +83,29 @@ bool InputManager::getData(InputData::Ptr input_data)
     return true;
 }
 
-std::map<std::string, bool> InputManager::getActiveInputs()
+void InputManager::getActiveInputs(
+        std::unordered_map<std::string, bool>& active_inputs) const
 {
-    std::map<std::string, bool> active_inputs;
-    for ( auto inputs_itr = inputs_.begin(); inputs_itr != inputs_.end(); inputs_itr ++ )
+    for ( const std::string& input_name : input_names_ )
     {
-        active_inputs[inputs_itr->first] = inputs_itr->second->isActive();
+        active_inputs[input_name] = inputs_.at(input_name)->isActive();
     }
-    return active_inputs;
 }
 
 void InputManager::updateActiveInputs(const std::vector<std::string>& required_inputs)
 {
-    for ( auto inputs_itr = inputs_.begin(); inputs_itr != inputs_.end(); inputs_itr ++ )
+    for ( const std::string& input_name : input_names_ )
     {
-        bool is_required = std::find(required_inputs.begin(),
-                                     required_inputs.end(),
-                                     inputs_itr->first) != required_inputs.end();
-        bool is_active = inputs_itr->second->isActive();
+        bool is_required = std::find(required_inputs.begin(), required_inputs.end(),
+                                     input_name) != required_inputs.end();
+        bool is_active = inputs_.at(input_name)->isActive();
         if ( is_required && !is_active )
         {
-            inputs_itr->second->activate();
+            inputs_[input_name]->activate();
         }
-
         else if ( !is_required && is_active )
         {
-            inputs_itr->second->deactivate();
+            inputs_[input_name]->deactivate();
         }
     }
 }

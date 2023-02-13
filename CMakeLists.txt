@@ -124,23 +124,13 @@ target_link_libraries(voronoi_calculator
 )
 
 # ===================
-# behavior LIBRARIES
+# BEHAVIOR LIBRARIES
 # ===================
 macro(add_behavior_lib NAME LIBS)
     add_library(${NAME}_behavior
         src/behavior/${NAME}_behavior.cpp
     )
     target_link_libraries(${NAME}_behavior
-        ${catkin_LIBRARIES}
-        ${LIBS}
-    )
-endmacro()
-
-macro(add_action_lib NAME LIBS)
-    add_library(${NAME}_action
-        src/action/${NAME}_action.cpp
-    )
-    target_link_libraries(${NAME}_action
         ${catkin_LIBRARIES}
         ${LIBS}
     )
@@ -156,7 +146,6 @@ target_link_libraries(behavior
     context_data
 )
 
-add_action_lib("goto" "behavior")
 add_behavior_lib("standstill" "behavior")
 add_behavior_lib("joypad" "behavior")
 add_behavior_lib("ptp" "behavior;obstacle_tracker;geometric_planner;initial_guess_utils")
@@ -166,6 +155,71 @@ add_behavior_lib("corridor" "behavior;geometric_planner;initial_guess_utils")
 add_behavior_lib("junction" "behavior;initial_guess_utils")
 add_behavior_lib("door" "behavior")
 add_behavior_lib("open_area" "behavior")
+
+# ================
+# ACTION LIBRARIES
+# ================
+macro(add_action_lib NAME LIBS)
+    add_library(${NAME}_action
+        src/action/${NAME}_action.cpp
+        src/action/action.cpp
+    )
+    target_link_libraries(${NAME}_action
+        ${catkin_LIBRARIES}
+        ${LIBS}
+    )
+endmacro()
+
+add_action_lib("goto" "behavior")
+
+# ===============
+# INPUT LIBRARIES
+# ===============
+macro(add_input_lib NAME LIBS)
+    add_library(${NAME}_input
+        src/input/${NAME}_input.cpp
+        src/input/${NAME}_input_data.cpp
+    )
+    target_link_libraries(${NAME}_input
+        ${catkin_LIBRARIES}
+        ${LIBS}
+    )
+endmacro()
+
+add_input_lib("velocity" "utilities")
+add_input_lib("localisation" "utilities")
+add_input_lib("joypad" "utilities")
+add_input_lib("laser" "utilities")
+add_input_lib("pointcloud" "utilities")
+add_input_lib("image" "utilities")
+add_input_lib("semantic_map" "utilities;semantic_map")
+
+add_library(occupancy_grid_map_input
+    src/input/occupancy_grid_map_input.cpp
+    src/input/occupancy_grid_map_input_data.cpp
+    src/structs/occupancy_grid.cpp
+)
+target_link_libraries(occupancy_grid_map_input
+    ${catkin_LIBRARIES}
+    utilities
+)
+
+# ===============
+# OUTPUT LIBRARIES
+# ===============
+macro(add_output_lib NAME LIBS)
+    add_library(${NAME}_output
+        src/output/${NAME}_output.cpp
+        src/output/${NAME}_output_data.cpp
+    )
+    target_link_libraries(${NAME}_output
+        ${catkin_LIBRARIES}
+        ${LIBS}
+    )
+endmacro()
+
+add_output_lib("cmd_vel" "utilities")
+add_output_lib("visualization_marker" "utilities")
 
 # =====================
 # CABIN NAVIGATOR LIBRARY
@@ -185,18 +239,29 @@ target_link_libraries(cabin_navigator
     semantic_map
     # actions
     goto_action
-    # general behaviors
+    # behaviors
     behavior
     standstill_behavior
     joypad_behavior
     ptp_behavior
     ptp_occ_grid_behavior
-    # goto action behaviors
     corridor_behavior
     junction_behavior
     door_behavior
     open_area_behavior
     recovery_ptp_behavior
+    # inputs
+    velocity_input
+    localisation_input
+    joypad_input
+    laser_input
+    pointcloud_input
+    image_input
+    occupancy_grid_map_input
+    semantic_map_input
+    # outputs
+    cmd_vel_output
+    visualization_marker_output
 )
 
 # =====================
@@ -205,18 +270,18 @@ target_link_libraries(cabin_navigator
 add_library(input_manager
     src/input/input_manager.cpp
     src/input/input_factory.cpp
-    src/input/velocity_input.cpp
-    src/input/localisation_input.cpp
-    src/input/laser_input.cpp
-    src/input/image_input.cpp
-    src/input/pointcloud_input.cpp
-    src/input/joypad_input.cpp
-    src/input/occupancy_grid_map_input.cpp
-    src/input/semantic_map_input.cpp
 )
 target_link_libraries(input_manager
     ${catkin_LIBRARIES}
     utilities
+    velocity_input
+    localisation_input
+    joypad_input
+    laser_input
+    pointcloud_input
+    image_input
+    occupancy_grid_map_input
+    semantic_map_input
 )
 
 # ======================
@@ -225,12 +290,12 @@ target_link_libraries(input_manager
 add_library(output_manager
     src/output/output_manager.cpp
     src/output/output_factory.cpp
-    src/output/cmd_vel_output.cpp
-    src/output/visualization_marker_output.cpp
 )
 target_link_libraries(output_manager
     ${catkin_LIBRARIES}
     utilities
+    cmd_vel_output
+    visualization_marker_output
 )
 
 # ==========

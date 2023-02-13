@@ -7,6 +7,11 @@
 #include <cabin_nav/structs/context_data.h>
 #include <cabin_nav/mpc/optimiser.h>
 #include <cabin_nav/mpc/model.h>
+#include <cabin_nav/input/velocity_input_data.h>
+#include <cabin_nav/input/localisation_input_data.h>
+#include <cabin_nav/input/laser_input_data.h>
+#include <cabin_nav/output/cmd_vel_output_data.h>
+#include <cabin_nav/output/visualization_marker_output_data.h>
 #include <cabin_nav/action/goto_action.h>
 #include <cabin_nav/behavior/corridor_behavior.h>
 
@@ -33,7 +38,8 @@ bool CorridorBehavior::configure(const YAML::Node& config)
          !parseVelLimitWeights(config) ||
          !parseGoalStateWeights(config) ||
          !parseFootprint(config) ||
-         !parseRequiredInputs(config) )
+         !parseRequiredInputs(config) ||
+         !parseOutputs(config) )
     {
         return false;
     }
@@ -127,6 +133,7 @@ void CorridorBehavior::reset()
     left_wall_ = LineSegment2D();
     right_wall_ = LineSegment2D();
     ideal_path_ = LineSegment2D();
+    laser_pts_.clear();
     remaining_pts_.clear();
     std::fill(u_.begin(), u_.end(), 0.0f);
     initial_guess_trajectory_.clear();
@@ -137,11 +144,30 @@ void CorridorBehavior::reset()
 
 void CorridorBehavior::runOnce(const ContextData& context_data, BehaviorFeedback& fb)
 {
-    fb.output_data->markers.push_back(behavior_name_marker_);
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), behavior_name_marker_);
+    VisualizationMarkerOutputData::addMarkers(fb.output_data_map,
+            outputs_map_.at("markers"), context_data.getPlanMarkers());
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), footprint_marker_);
+
     context_data_ = &context_data;
-    current_.vel = context_data_->input_data->current_vel;
+
+    if ( !VelocityInputData::getVelocity(context_data.input_data_map,
+             required_inputs_map_.at("velocity"), current_.vel) ||
+         !LaserInputData::getLaserPts(context_data.input_data_map,
+             required_inputs_map_.at("laser"), laser_pts_) )
+    {
+        std::cout << Print::Err << Print::Time() << "[CorridorBehavior] "
+                  << "Could not get velocity and/or laser."
+                  << Print::End << std::endl;
+        CmdVelOutputData::setTrajectory(
+                fb.output_data_map, calcRampedTrajectory(current_.vel));
+        fb.success = false;
+        return;
+    }
 
     if ( !perceive(fb) )
     {
@@ -156,22 +182,21 @@ void CorridorBehavior::runOnce(const ContextData& context_data, BehaviorFeedback
     float time_threshold = remaining_time * 0.8f;
 
     Optimiser::conjugateGradientDescent(time_threshold, cf_, u_);
-    fb.output_data->trajectory = Model::calcTrajectory(
-            current_, u_, sample_times_);
+    Trajectory traj = Model::calcTrajectory(current_, u_, sample_times_);
+    CmdVelOutputData::setTrajectory(fb.output_data_map, traj);
     std::chrono::duration<float> time_taken = std::chrono::steady_clock::now() - start_time;
     // std::cout << time_taken.count() * 1000.0f << " ms" << std::endl;
 
     /* visualize features using markers */
-    fb.output_data->markers.push_back(left_wall_.asMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), left_wall_.asMarker(
                 "robot", 1.0f, 0.0, 0.0f, 0.8f, 0.05f));
-    fb.output_data->markers.push_back(right_wall_.asMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), right_wall_.asMarker(
                 "robot", 1.0f, 0.0, 0.0f, 0.8f, 0.05f));
-    fb.output_data->markers.push_back(ideal_path_.asMarker(
+    VisualizationMarkerOutputData::addMarker(fb.output_data_map,
+            outputs_map_.at("markers"), ideal_path_.asMarker(
                 "robot", 0.0f, 0.33f, 0.0f, 1.0f, 0.05f));
-    std::vector<visualization_msgs::Marker> plan_markers = context_data.getPlanMarkers();
-    fb.output_data->markers.insert(fb.output_data->markers.end(),
-            plan_markers.begin(), plan_markers.end());
-    fb.output_data->markers.push_back(footprint_marker_);
 
     retry_counter_ = 0;
     fb.success = true;
@@ -184,7 +209,7 @@ void CorridorBehavior::calcInitialU(std::vector<float>& u, BehaviorFeedback& fb)
         initial_guess_utils_.calcInitialGuessIntermittently(
                 current_, u, initial_guess_trajectory_);
         addInitialGuessTrajectoryMarkers(
-                initial_guess_trajectory_, fb.output_data->markers);
+                initial_guess_trajectory_, fb.output_data_map);
     }
     else
     {
@@ -308,13 +333,23 @@ bool CorridorBehavior::preConditionSatisfied(
         return false;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[CorridorBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(action);
     Point2D intermediate_goal_pt;
 
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const Area::ConstPtr& corridor_area = goto_plan[goto_plan_index];
-    const Pose2D robot_pose = context_data.input_data->localisation_tf.asPose2D();
+    const Pose2D robot_pose = loc_tf.asPose2D();
     const Point2D robot_pt = robot_pose.position();
 
     if ( goto_plan.size() - goto_plan_index == 1 ) // last area
@@ -394,6 +429,16 @@ bool CorridorBehavior::postConditionSatisfied(const ContextData& context_data) c
         return true;
     }
 
+    TransformMatrix2D loc_tf;
+    if ( !LocalisationInputData::getLocalisationTF(context_data.input_data_map,
+                required_inputs_map_.at("localisation"), loc_tf) )
+    {
+        std::cout << Print::Err << Print::Time() << "[CorridorBehavior] "
+                  << "Could not get localisation tf"
+                  << Print::End << std::endl;
+        return false;
+    }
+
     const GoToAction::Ptr goto_action = std::static_pointer_cast<GoToAction>(
              context_data.plan[context_data.plan_index]);
     Point2D intermediate_goal_pt;
@@ -401,7 +446,7 @@ bool CorridorBehavior::postConditionSatisfied(const ContextData& context_data) c
     const std::vector<Area::ConstPtr>& goto_plan = goto_action->getGoToPlan();
     size_t goto_plan_index = goto_action->getGoToPlanIndex();
     const Area::ConstPtr& corridor_area = goto_plan[goto_plan_index];
-    const Pose2D robot_pose = context_data.input_data->localisation_tf.asPose2D();
+    const Pose2D robot_pose = loc_tf.asPose2D();
     const Point2D robot_pt = robot_pose.position();
 
     if ( goto_plan.size() - goto_plan_index == 1 ) // last area
@@ -449,13 +494,13 @@ bool CorridorBehavior::findWalls(
 {
     remaining_pts.clear();
     PointCloud2D left_pts, right_pts;
-    left_pts.reserve(context_data_->input_data->laser_pts.size()/2);
-    right_pts.reserve(context_data_->input_data->laser_pts.size()/2);
-    for ( const Point2D& pt : context_data_->input_data->laser_pts )
+    left_pts.reserve(laser_pts_.size()/2);
+    right_pts.reserve(laser_pts_.size()/2);
+    for ( const Point2D& pt : laser_pts_ )
     {
-        // if ( context_data_->input_data->laser_pts[i].x < 0 )
+        // if ( laser_pts_[i].x < 0 )
         // {
-        //     remaining_pts_.push_back(context_data_->input_data->laser_pts[i]);
+        //     remaining_pts_.push_back(laser_pts_[i]);
         // }
         if ( pt.y > 0 )
         {
@@ -500,7 +545,8 @@ void CorridorBehavior::failWithRetry(
         BehaviorFeedback& fb,
         const std::string& failure_code)
 {
-    fb.output_data->trajectory = calcRampedTrajectory(current_.vel);
+    CmdVelOutputData::setTrajectory(
+            fb.output_data_map, calcRampedTrajectory(current_.vel));
     retry_counter_ ++;
     if ( retry_counter_ > retry_threshold_ )
     {
