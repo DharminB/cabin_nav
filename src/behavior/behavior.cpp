@@ -261,7 +261,7 @@ bool Behavior::parseRequiredInputs(const YAML::Node& config)
     required_inputs_.reserve(required_inputs_map.size());
     for ( auto itr = required_inputs_map.begin(); itr != required_inputs_map.end(); itr ++ )
     {
-        required_inputs_.push_back(itr->first);
+        required_inputs_.push_back(itr->second);
     }
     return true;
 }
