@@ -21,6 +21,7 @@ laser:
     type: "LASER"
     topic: "/ropod/scan"
     robot_frame: "ropod/base_link"
+    always_active: true
 
 joypad:
     type: "JOYPAD"

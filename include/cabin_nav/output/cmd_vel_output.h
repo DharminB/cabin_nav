@@ -58,6 +58,8 @@ class CmdVelOutput : public Output
         kelo::geometry_common::Acceleration2D max_braking_acc_, min_braking_acc_;
         bool use_braking_acc_{false};
 
+        std::string laser_input_name_;
+
         float sample_time_{1.0f};
 
         kelo::geometry_common::Polygon2D footprint_;

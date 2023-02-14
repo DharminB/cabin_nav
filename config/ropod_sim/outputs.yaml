@@ -9,6 +9,7 @@ cmd_vel:
         - {x: -0.3, y: -0.3}
         - {x: 0.3, y: -0.3}
     footprint_padding: 0.05
+    laser_input_name: "laser"
     # acceleration limits
     max_acc: {x: 0.5, y: 0.5, theta: 1.0}
     braking_acc: {x: 1.0, y: 1.0, theta: 1.5}

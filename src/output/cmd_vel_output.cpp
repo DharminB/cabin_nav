@@ -8,10 +8,12 @@
 #include <cabin_nav/utils/utils.h>
 #include <cabin_nav/mpc/model.h>
 
+#include <cabin_nav/input/laser_input_data.h>
 #include <cabin_nav/output/cmd_vel_output.h>
 #include <cabin_nav/output/cmd_vel_output_data.h>
 
 using kelo::geometry_common::Point2D;
+using kelo::geometry_common::PointCloud2D;
 using kelo::geometry_common::Polygon2D;
 using kelo::geometry_common::XYTheta;
 using kelo::geometry_common::Velocity2D;
@@ -26,7 +28,7 @@ bool CmdVelOutput::configure(const YAML::Node& config)
     if ( !Parser::read<std::string>(config, "topic", topic_) ||
          !Parser::read<float>(config, "rate", rate_) )
     {
-        std::cerr << Print::Err << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Err << Print::Time() << "[CmdVelOutput] "
                   << "topic and/or rate not provided"
                   << Print::End << std::endl;
         return false;
@@ -35,6 +37,7 @@ bool CmdVelOutput::configure(const YAML::Node& config)
     queue_size_ = Parser::get<size_t>(config, "queue_size", 1);
     ideal_loop_duration_ = std::chrono::duration<float>(1.0f / rate_);
     robot_frame_ = Parser::get<std::string>(config, "robot_frame", "base_link");
+    laser_input_name_ = Parser::get<std::string>(config, "laser_input_name", "laser");
 
     if ( !Parser::read<XYTheta>(config, "max_vel", max_vel_) ||
          !Parser::read<XYTheta>(config, "min_vel", min_vel_) ||
@@ -157,7 +160,7 @@ void CmdVelOutput::step()
 
     if ( now > target_vel_time_ + std::chrono::seconds(1) )
     {
-        std::cerr << Print::Warn << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
                   << "Did not get target vel within expected duration."
                   << " Commanding zero vel." << Print::End << std::endl;
         target_vel_.x = 0.0f;
@@ -208,9 +211,21 @@ void CmdVelOutput::applySafetyConstraints(const InputData::Map& input_data_map)
          std::isnan(target_vel_.y) ||
          std::isnan(target_vel_.theta) )
     {
-        std::cerr << Print::Warn << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
                   << "Target velocity has nan " << target_vel_
                   << ". Commanding zero vel."
+                  << Print::End << std::endl;
+        target_vel_ = Velocity2D();
+        return;
+    }
+
+    PointCloud2D laser_pts;
+    if ( !LaserInputData::getLaserPts(input_data_map, laser_input_name_, laser_pts) ||
+         laser_pts.empty() )
+    {
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
+                  << "Could not get laser points from input \"" << laser_input_name_
+                  << "\" or got zero points. Commanding zero vel."
                   << Print::End << std::endl;
         target_vel_ = Velocity2D();
         return;
@@ -219,7 +234,7 @@ void CmdVelOutput::applySafetyConstraints(const InputData::Map& input_data_map)
     Velocity2D safe_vel = GCUtils::applyVelLimits(target_vel_, max_vel_, min_vel_);
     if ( safe_vel != target_vel_ )
     {
-        std::cerr << Print::Warn << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
                   << "Velocity reduced from " << target_vel_ << " to " << safe_vel 
                   << " to comply with velocity limits."
                   << Print::End << std::endl;
@@ -242,25 +257,23 @@ void CmdVelOutput::applySafetyConstraints(const InputData::Map& input_data_map)
     size_t num_of_states = std::ceil(safe_braking_time / sample_time);
     std::vector<float> sample_times(num_of_states, sample_time);
     std::vector<float> u(num_of_states * 3, 0.0f);
-    Trajectory trajectory = Model::calcTrajectory(
-            current, u, sample_times);
+    Trajectory trajectory = Model::calcTrajectory(current, u, sample_times);
 
-    // /* check collision */
-    // float time_to_collision = -1.0f;
-    // int collision_index = Utils::calcCollisionIndex(
-    //         trajectory, footprint_, input_data->laser_pts);
-    // if ( collision_index >= 0 ) // unsafe
-    // {
-    //     time_to_collision = trajectory[collision_index].t;
-    //     float conservative_ttc = std::max(time_to_collision - sample_time, 0.0f);
-    //     float vel_scaling_factor = conservative_ttc / safe_braking_time;
-    //     vel_scaling_factor = std::min(1.0f, vel_scaling_factor); // just to be extra safe
-    //     safe_vel = safe_vel * vel_scaling_factor;
-    // }
+    /* check collision */
+    float time_to_collision = -1.0f;
+    int collision_index = Utils::calcCollisionIndex(trajectory, footprint_, laser_pts);
+    if ( collision_index >= 0 ) // unsafe
+    {
+        time_to_collision = trajectory[collision_index].t;
+        float conservative_ttc = std::max(time_to_collision - sample_time, 0.0f);
+        float vel_scaling_factor = conservative_ttc / safe_braking_time;
+        vel_scaling_factor = std::min(1.0f, vel_scaling_factor); // just to be extra safe
+        safe_vel = safe_vel * vel_scaling_factor;
+    }
 
     if ( safe_vel != target_vel_ )
     {
-        std::cerr << Print::Warn << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
                   << "Velocity reduced from " << target_vel_ << " to " << safe_vel
                   << " to avoid potential collision."
                   << Print::End << std::endl;
@@ -278,7 +291,7 @@ bool CmdVelOutput::parseFootprint(const YAML::Node& config)
     Polygon2D raw_footprint;
     if ( !Parser::read<Polygon2D>(config, "footprint", raw_footprint) )
     {
-        std::cerr << Print::Warn << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
                   << "Could not parse footprint"
                   << Print::End << std::endl;
         return false;
@@ -286,7 +299,7 @@ bool CmdVelOutput::parseFootprint(const YAML::Node& config)
 
     if ( raw_footprint.size() < 3 )
     {
-        std::cerr << Print::Warn << Print::Time() << "[CmdVelOutput] "
+        std::cout << Print::Warn << Print::Time() << "[CmdVelOutput] "
                   << "Footprint does not form a polygon. Need atleast 3 points." << std::endl
                   << Print::End << std::endl;
         return false;
