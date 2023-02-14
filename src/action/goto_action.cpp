@@ -139,9 +139,11 @@ Status GoToAction::recursiveRecommendNextBehavior(
             enableIsDuringTransition();
         }
         SemanticMap::ConstPtr semantic_map{nullptr};
-        if ( (!SemanticMapInputData::getSemanticMap(context_data.input_data_map,
+        if ( (context_data.input_data_map.find(inputs_map_.at("semantic_map")) ==
+                    context_data.input_data_map.end() ||
+              !SemanticMapInputData::getSemanticMap(context_data.input_data_map,
                     inputs_map_.at("semantic_map"), semantic_map) ||
-             !semantic_map->isValid()) &&
+              !semantic_map->isValid()) &&
              behavior_map.find("ptp_occ_grid") != behavior_map.end() )
         {
             next_behavior = "ptp_occ_grid";
@@ -297,7 +299,9 @@ std::string GoToAction::getBehaviorNameBasedOnRequiredInputs(
 void GoToAction::plan(const ContextData& context_data, const Pose2D& start)
 {
     SemanticMap::ConstPtr semantic_map{nullptr};
-    if ( !SemanticMapInputData::getSemanticMap(context_data.input_data_map,
+    if ( context_data.input_data_map.find(inputs_map_.at("semantic_map")) ==
+            context_data.input_data_map.end() ||
+         !SemanticMapInputData::getSemanticMap(context_data.input_data_map,
                 inputs_map_.at("semantic_map"), semantic_map) ||
          !semantic_map->isValid() )
     {
