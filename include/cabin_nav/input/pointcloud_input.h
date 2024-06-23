@@ -1,5 +1,4 @@
-#ifndef CABIN_POINTCLOUD_INPUT_H
-#define CABIN_POINTCLOUD_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -60,5 +59,3 @@ class PointCloudInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_POINTCLOUD_INPUT_H

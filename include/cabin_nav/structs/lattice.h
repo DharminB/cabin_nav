@@ -1,5 +1,4 @@
-#ifndef CABIN_LATTICE_H
-#define CABIN_LATTICE_H
+#pragma once
 
 #include <visualization_msgs/Marker.h>
 
@@ -181,5 +180,3 @@ class Lattice
 };
 
 } // namespace cabin
-
-#endif // CABIN_LATTICE_H

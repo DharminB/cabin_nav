@@ -1,5 +1,4 @@
-#ifndef CABIN_MODEL_H
-#define CABIN_MODEL_H
+#pragma once
 
 #include <cabin_nav/structs/trajectory_point.h>
 #include <geometry_common/XYTheta.h>
@@ -61,5 +60,3 @@ class Model
 };
 
 } // namespace cabin
-
-#endif // CABIN_MODEL_H

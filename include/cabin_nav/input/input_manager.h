@@ -1,5 +1,4 @@
-#ifndef CABIN_INPUT_MANAGER_H
-#define CABIN_INPUT_MANAGER_H
+#pragma once
 
 #include <ros/ros.h>
 
@@ -39,5 +38,3 @@ class InputManager
 };
 
 } // namespace cabin
-
-#endif // CABIN_INPUT_MANAGER_H

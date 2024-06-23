@@ -1,5 +1,4 @@
-#ifndef CABIN_UTILS_H
-#define CABIN_UTILS_H
+#pragma once
 
 #include <vector>
 #include <unordered_map>
@@ -171,5 +170,3 @@ class Utils
 };
 
 } // namespace cabin
-
-#endif // CABIN_UTILS_H

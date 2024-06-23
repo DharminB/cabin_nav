@@ -1,5 +1,4 @@
-#ifndef CABIN_LATTICE_CONFIG_H
-#define CABIN_LATTICE_CONFIG_H
+#pragma once
 
 #include <geometry_common/TransformMatrix2D.h>
 
@@ -30,5 +29,3 @@ struct LatticeConfig
 };
 
 } // namespace cabin
-
-#endif // CABIN_LATTICE_CONFIG_H

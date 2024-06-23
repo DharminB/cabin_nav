@@ -1,5 +1,4 @@
-#ifndef CABIN_CONNECTION_H
-#define CABIN_CONNECTION_H
+#pragma once
 
 #include <string>
 
@@ -27,5 +26,3 @@ class Connection
 };
 
 } // namespace cabin
-
-#endif // CABIN_CONNECTION_H

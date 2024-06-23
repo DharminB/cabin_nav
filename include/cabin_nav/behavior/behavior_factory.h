@@ -1,5 +1,4 @@
-#ifndef CABIN_behavior_FACTORY_H
-#define CABIN_behavior_FACTORY_H
+#pragma once
 
 #include <unordered_map>
 
@@ -27,5 +26,3 @@ class BehaviorFactory
 };
 
 } // namespace cabin
-
-#endif // CABIN_behavior_FACTORY_H

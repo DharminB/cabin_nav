@@ -1,5 +1,4 @@
-#ifndef CABIN_CORRIDOR_behavior_H
-#define CABIN_CORRIDOR_behavior_H
+#pragma once
 
 #include <geometry_common/LineSegment2D.h>
 
@@ -95,5 +94,3 @@ class CorridorBehavior : public Behavior
 };
 
 } // namespace cabin
-
-#endif // CABIN_CORRIDOR_behavior_H

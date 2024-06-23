@@ -1,5 +1,4 @@
-#ifndef CABIN_JOYPAD_INPUT_H
-#define CABIN_JOYPAD_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -49,5 +48,3 @@ class JoypadInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_JOYPAD_INPUT_H

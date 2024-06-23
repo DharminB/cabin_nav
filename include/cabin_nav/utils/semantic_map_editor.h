@@ -1,5 +1,4 @@
-#ifndef CABIN_SEMANTIC_MAP_EDITOR_H
-#define CABIN_SEMANTIC_MAP_EDITOR_H
+#pragma once
 
 #include <unordered_map>
 
@@ -63,5 +62,3 @@ class SemanticMapEditor
 };
 
 } // namespace cabin
-
-#endif // CABIN_SEMANTIC_MAP_EDITOR_H

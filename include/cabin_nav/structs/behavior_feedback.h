@@ -1,5 +1,4 @@
-#ifndef CABIN_BEHAVIOR_FEEDBACK_H
-#define CABIN_BEHAVIOR_FEEDBACK_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -39,5 +38,3 @@ struct BehaviorFeedback
 };
 
 } // namespace cabin
-
-#endif // CABIN_BEHAVIOR_FEEDBACK_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_PTP_OCC_GRID_behavior_H
-#define CABIN_PTP_OCC_GRID_behavior_H
+#pragma once
 
 #include <mutex>
 #include <thread>
@@ -57,5 +56,3 @@ class PTPOccGridBehavior : public PTPBehavior
 };
 
 } // namespace cabin
-
-#endif // CABIN_PTP_OCC_GRID_behavior_H

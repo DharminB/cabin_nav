@@ -1,5 +1,4 @@
-#ifndef CABIN_PRINT_H
-#define CABIN_PRINT_H
+#pragma once
 
 #include <string>
 #include <chrono>
@@ -37,4 +36,3 @@ struct Print
 };
 
 } // namespace cabin
-#endif // CABIN_PRINT_H

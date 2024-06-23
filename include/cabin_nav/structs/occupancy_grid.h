@@ -1,5 +1,4 @@
-#ifndef CABIN_OCCUPANCY_GRID_H
-#define CABIN_OCCUPANCY_GRID_H
+#pragma once
 
 #include <visualization_msgs/Marker.h>
 
@@ -104,5 +103,3 @@ class OccupancyGrid
 };
 
 } // namespace cabin
-
-#endif // CABIN_OCCUPANCY_GRID_H

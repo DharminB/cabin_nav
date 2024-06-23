@@ -1,5 +1,4 @@
-#ifndef CABIN_NEIGHBOUR_OFFSET_H
-#define CABIN_NEIGHBOUR_OFFSET_H
+#pragma once
 
 #include <cabin_nav/structs/lattice_index.h>
 
@@ -27,5 +26,3 @@ struct NeighbourOffset
 typedef std::vector<std::vector<NeighbourOffset> > AllNeighbourOffsets;
 
 } // namespace cabin
-
-#endif // CABIN_NEIGHBOUR_OFFSET_H

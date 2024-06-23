@@ -1,5 +1,4 @@
-#ifndef CABIN_JOYPAD_H
-#define CABIN_JOYPAD_H
+#pragma once
 
 #include <array>
 
@@ -61,5 +60,3 @@ struct Joypad
 };
 
 } // namespace cabin
-
-#endif // CABIN_JOYPAD_H

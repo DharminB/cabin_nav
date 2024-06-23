@@ -1,5 +1,4 @@
-#ifndef CABIN_VORONOI_CALCULATOR_H
-#define CABIN_VORONOI_CALCULATOR_H
+#pragma once
 
 #include <queue>
 
@@ -75,5 +74,3 @@ class VoronoiCalculator
 };
 
 } // namespace cabin
-
-#endif // CABIN_VORONOI_CALCULATOR_H

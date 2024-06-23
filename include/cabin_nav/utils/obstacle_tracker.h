@@ -1,5 +1,4 @@
-#ifndef CABIN_OBSTACLE_TRACKER_H
-#define CABIN_OBSTACLE_TRACKER_H
+#pragma once
 
 #include <geometry_common/Pose2D.h>
 #include <geometry_common/Circle.h>
@@ -66,5 +65,3 @@ class ObstacleTracker
 };
 
 } // namespace cabin
-
-#endif // CABIN_OBSTACLE_TRACKER_H

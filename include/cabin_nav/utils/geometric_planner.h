@@ -1,5 +1,4 @@
-#ifndef CABIN_GEOMETRIC_PLANNER_H
-#define CABIN_GEOMETRIC_PLANNER_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -147,5 +146,3 @@ class GeometricPlanner
 };
 
 } // namespace cabin
-
-#endif // CABIN_GEOMETRIC_PLANNER_H

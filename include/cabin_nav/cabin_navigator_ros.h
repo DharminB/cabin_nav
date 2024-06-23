@@ -1,5 +1,4 @@
-#ifndef CABIN_NAVIGATOR_ROS_H
-#define CABIN_NAVIGATOR_ROS_H
+#pragma once
 
 #include <mutex>
 
@@ -43,4 +42,3 @@ class CABINNavigatorROS : public CABINNavigator
 };
 
 } // namespace cabin
-#endif // CABIN_NAVIGATOR_ROS_H

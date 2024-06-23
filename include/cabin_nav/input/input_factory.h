@@ -1,5 +1,4 @@
-#ifndef CABIN_INPUT_FACTORY_H
-#define CABIN_INPUT_FACTORY_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -16,5 +15,3 @@ class InputFactory
 };
 
 } // namespace cabin
-
-#endif // CABIN_INPUT_FACTORY_H

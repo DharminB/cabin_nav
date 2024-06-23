@@ -1,5 +1,4 @@
-#ifndef CABIN_SEMANTIC_MAP_H
-#define CABIN_SEMANTIC_MAP_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -67,4 +66,3 @@ class SemanticMap
 };
 
 } // namespace cabin
-#endif // CABIN_SEMANTIC_MAP_H

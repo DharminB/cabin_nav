@@ -1,5 +1,4 @@
-#ifndef CABIN_IMG_DATA_H
-#define CABIN_IMG_DATA_H
+#pragma once
 
 #include <regex>
 
@@ -39,5 +38,3 @@ struct ImgData
 };
 
 } // namespace cabin
-
-#endif // CABIN_IMG_DATA_H

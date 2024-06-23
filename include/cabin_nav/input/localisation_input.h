@@ -1,5 +1,4 @@
-#ifndef CABIN_LOCALISATION_INPUT_H
-#define CABIN_LOCALISATION_INPUT_H
+#pragma once
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -46,5 +45,3 @@ class LocalisationInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_LOCALISATION_INPUT_H

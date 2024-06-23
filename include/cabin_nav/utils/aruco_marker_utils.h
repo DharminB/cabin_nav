@@ -1,5 +1,4 @@
-#ifndef CABIN_ARUCO_MARKER_UTILS_H
-#define CABIN_ARUCO_MARKER_UTILS_H
+#pragma once
 
 #include <opencv2/aruco.hpp>
 
@@ -61,5 +60,3 @@ class ArucoMarkerUtils
 };
 
 } // namespace cabin
-
-#endif // CABIN_ARUCO_MARKER_UTILS_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_DOOR_behavior_H
-#define CABIN_DOOR_behavior_H
+#pragma once
 
 #include <deque>
 
@@ -84,5 +83,3 @@ class DoorBehavior : public Behavior
 };
 
 } // namespace cabin
-
-#endif // CABIN_DOOR_behavior_H

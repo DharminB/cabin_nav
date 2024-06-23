@@ -1,5 +1,4 @@
-#ifndef CABIN_STANDSTILL_behavior_H
-#define CABIN_STANDSTILL_behavior_H
+#pragma once
 
 #include <cabin_nav/behavior/behavior.h>
 
@@ -35,4 +34,3 @@ class StandstillBehavior : public Behavior
 };
 
 } // namespace cabin
-#endif // CABIN_STANDSTILL_behavior_H

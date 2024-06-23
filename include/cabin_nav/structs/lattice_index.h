@@ -1,5 +1,4 @@
-#ifndef CABIN_LATTICE_INDEX_H
-#define CABIN_LATTICE_INDEX_H
+#pragma once
 
 namespace cabin {
 
@@ -24,5 +23,3 @@ struct LatticeIndex
 };
 
 } // namespace cabin
-
-#endif // CABIN_LATTICE_INDEX_H

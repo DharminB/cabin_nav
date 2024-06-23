@@ -1,5 +1,4 @@
-#ifndef CABIN_AREA_H
-#define CABIN_AREA_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -57,4 +56,3 @@ class Area
 };
 
 } // namespace cabin
-#endif // CABIN_AREA_H

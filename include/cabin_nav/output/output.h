@@ -1,5 +1,4 @@
-#ifndef CABIN_OUTPUT_H
-#define CABIN_OUTPUT_H
+#pragma once
 
 #include <atomic>
 #include <chrono>
@@ -92,5 +91,3 @@ inline std::ostream& operator << (std::ostream& out, const Output& output)
 };
 
 } // namespace cabin
-
-#endif // CABIN_OUTPUT_H

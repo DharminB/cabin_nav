@@ -1,5 +1,4 @@
-#ifndef CABIN_LASER_INPUT_DATA_H
-#define CABIN_LASER_INPUT_DATA_H
+#pragma once
 
 #include <geometry_common/Point2D.h>
 #include <geometry_common/Point3D.h>
@@ -38,5 +37,3 @@ class LaserInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_LASER_INPUT_DATA_H

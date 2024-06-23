@@ -1,5 +1,4 @@
-#ifndef CABIN_IMAGE_INPUT_DATA_H
-#define CABIN_IMAGE_INPUT_DATA_H
+#pragma once
 
 #include <cabin_nav/input/input_data.h>
 #include <cabin_nav/structs/img_data.h>
@@ -30,5 +29,3 @@ class ImageInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_IMAGE_INPUT_DATA_H

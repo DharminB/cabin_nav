@@ -1,5 +1,4 @@
-#ifndef CABIN_CMD_VEL_OUTPUT_H
-#define CABIN_CMD_VEL_OUTPUT_H
+#pragma once
 
 #include <ros/ros.h>
 #include <geometry_msgs/PolygonStamped.h>
@@ -76,5 +75,3 @@ class CmdVelOutput : public Output
 };
 
 } // namespace cabin
-
-#endif // CABIN_CMD_VEL_OUTPUT_H

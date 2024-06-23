@@ -1,5 +1,4 @@
-#ifndef CABIN_LATTICE_SEARCH_UTILS_H
-#define CABIN_LATTICE_SEARCH_UTILS_H
+#pragma once
 
 #include <geometry_common/Pose2D.h>
 #include <geometry_common/TransformMatrix2D.h>
@@ -152,5 +151,3 @@ class LatticeSearchUtils
 };
 
 } // namespace cabin
-
-#endif // CABIN_LATTICE_SEARCH_UTILS_H

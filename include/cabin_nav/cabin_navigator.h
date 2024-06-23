@@ -1,5 +1,4 @@
-#ifndef CABIN_NAVIGATOR_H
-#define CABIN_NAVIGATOR_H
+#pragma once
 
 #include <thread>
 #include <mutex>
@@ -92,5 +91,3 @@ class CABINNavigator
 };
 
 } // namespace cabin
-
-#endif // CABIN_NAVIGATOR_H

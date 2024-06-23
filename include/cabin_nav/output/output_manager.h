@@ -1,5 +1,4 @@
-#ifndef CABIN_OUTPUT_MANAGER_H
-#define CABIN_OUTPUT_MANAGER_H
+#pragma once
 
 #include <ros/ros.h>
 
@@ -36,5 +35,3 @@ class OutputManager
 };
 
 } // namespace cabin
-
-#endif // CABIN_OUTPUT_MANAGER_H

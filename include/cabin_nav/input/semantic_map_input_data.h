@@ -1,5 +1,4 @@
-#ifndef CABIN_SEMANTIC_MAP_INPUT_DATA_H
-#define CABIN_SEMANTIC_MAP_INPUT_DATA_H
+#pragma once
 
 #include <cabin_nav/input/input_data.h>
 #include <cabin_nav/semantic_map/semantic_map.h>
@@ -30,5 +29,3 @@ class SemanticMapInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_SEMANTIC_MAP_INPUT_DATA_H

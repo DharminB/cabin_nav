@@ -1,5 +1,4 @@
-#ifndef CABIN_INPUT_DATA_H
-#define CABIN_INPUT_DATA_H
+#pragma once
 
 #include <memory>
 #include <iostream>
@@ -78,5 +77,3 @@ inline std::ostream& operator << (std::ostream& out, const InputData& input_data
 };
 
 } // namespace cabin
-
-#endif // CABIN_INPUT_DATA_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_VELOCITY_INPUT_DATA_H
-#define CABIN_VELOCITY_INPUT_DATA_H
+#pragma once
 
 #include <geometry_common/XYTheta.h>
 
@@ -33,5 +32,3 @@ class VelocityInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_VELOCITY_INPUT_DATA_H

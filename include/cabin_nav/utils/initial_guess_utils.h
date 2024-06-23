@@ -1,5 +1,4 @@
-#ifndef CABIN_INITIAL_GUESS_UTILS_H
-#define CABIN_INITIAL_GUESS_UTILS_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -104,5 +103,3 @@ class InitialGuessUtils
 };
 
 } // namespace cabin
-
-#endif // CABIN_INITIAL_GUESS_UTILS_H

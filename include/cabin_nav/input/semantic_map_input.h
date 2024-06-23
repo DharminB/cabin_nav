@@ -1,5 +1,4 @@
-#ifndef CABIN_SEMANTIC_MAP_INPUT_H
-#define CABIN_SEMANTIC_MAP_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -35,5 +34,3 @@ class SemanticMapInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_SEMANTIC_MAP_INPUT_H

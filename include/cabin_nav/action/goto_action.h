@@ -1,5 +1,4 @@
-#ifndef CABIN_GOTO_ACTION_H
-#define CABIN_GOTO_ACTION_H
+#pragma once
 
 #include <geometry_common/Pose2D.h>
 
@@ -103,5 +102,3 @@ class GoToAction: public Action
 };
 
 } // namespace cabin
-
-#endif // CABIN_GOTO_ACTION_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_OUTPUT_FACTORY_H
-#define CABIN_OUTPUT_FACTORY_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -16,5 +15,3 @@ class OutputFactory
 };
 
 } // namespace cabin
-
-#endif // CABIN_OUTPUT_FACTORY_H

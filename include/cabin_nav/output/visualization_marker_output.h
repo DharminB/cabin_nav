@@ -1,5 +1,4 @@
-#ifndef CABIN_VISUALIZATION_MARKER_OUTPUT_H
-#define CABIN_VISUALIZATION_MARKER_OUTPUT_H
+#pragma once
 
 #include <ros/ros.h>
 
@@ -72,4 +71,3 @@ class VisualizationMarkerOutput : public Output
 };
 
 } // namespace cabin
-#endif // CABIN_VISUALIZATION_MARKER_OUTPUT_H

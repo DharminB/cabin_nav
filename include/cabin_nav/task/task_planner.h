@@ -1,5 +1,4 @@
-#ifndef CABIN_TASK_PLANNER_H
-#define CABIN_TASK_PLANNER_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -46,5 +45,3 @@ class TaskPlanner
 };
 
 } // namespace cabin
-
-#endif // CABIN_TASK_PLANNER_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_ACTION_H
-#define CABIN_ACTION_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -79,5 +78,3 @@ inline std::ostream& operator << (std::ostream& out, const Action& action)
 };
 
 } // namespace cabin
-
-#endif // CABIN_ACTION_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_OCCUPANCY_GRID_MAP_INPUT_H
-#define CABIN_OCCUPANCY_GRID_MAP_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -45,5 +44,3 @@ class OccupancyGridMapInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_OCCUPANCY_GRID_MAP_INPUT_H

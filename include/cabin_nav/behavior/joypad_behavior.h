@@ -1,5 +1,4 @@
-#ifndef CABIN_JOYPAD_behavior_H
-#define CABIN_JOYPAD_behavior_H
+#pragma once
 
 #include <cabin_nav/behavior/behavior.h>
 
@@ -35,4 +34,3 @@ class JoypadBehavior : public Behavior
 };
 
 } // namespace cabin
-#endif // CABIN_JOYPAD_behavior_H

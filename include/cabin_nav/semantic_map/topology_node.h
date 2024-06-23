@@ -1,5 +1,4 @@
-#ifndef CABIN_TOPOLOGY_NODE_H
-#define CABIN_TOPOLOGY_NODE_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -58,5 +57,3 @@ class TopologyNode
 };
 
 } // namespace cabin
-
-#endif // CABIN_TOPOLOGY_NODE_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_ACTION_FACTORY_H
-#define CABIN_ACTION_FACTORY_H
+#pragma once
 
 #include <unordered_map>
 
@@ -30,5 +29,3 @@ class ActionFactory
 };
 
 } // namespace cabin
-
-#endif // CABIN_ACTION_FACTORY_H

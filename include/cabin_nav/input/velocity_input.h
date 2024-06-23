@@ -1,5 +1,4 @@
-#ifndef CABIN_VELOCITY_INPUT_H
-#define CABIN_VELOCITY_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -58,5 +57,3 @@ class VelocityInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_VELOCITY_INPUT_H

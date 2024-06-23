@@ -1,5 +1,4 @@
-#ifndef CABIN_MOVING_CIRCLE_H
-#define CABIN_MOVING_CIRCLE_H
+#pragma once
 
 #include <string>
 
@@ -30,5 +29,3 @@ class MovingCircle : public kelo::geometry_common::Circle
 };
 
 } // namespace cabin
-
-#endif // CABIN_MOVING_CIRCLE_H

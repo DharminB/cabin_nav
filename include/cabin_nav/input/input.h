@@ -1,5 +1,4 @@
-#ifndef CABIN_INPUT_H
-#define CABIN_INPUT_H
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -66,5 +65,3 @@ inline std::ostream& operator << (std::ostream& out, const Input& input)
 };
 
 } // namespace cabin
-
-#endif // CABIN_INPUT_H

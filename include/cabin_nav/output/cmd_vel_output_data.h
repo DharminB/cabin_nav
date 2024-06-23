@@ -1,5 +1,4 @@
-#ifndef CABIN_CMD_VEL_OUTPUT_DATA_H
-#define CABIN_CMD_VEL_OUTPUT_DATA_H
+#pragma once
 
 #include <cabin_nav/output/output_data.h>
 
@@ -32,5 +31,3 @@ class CmdVelOutputData : public OutputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_CMD_VEL_OUTPUT_DATA_H

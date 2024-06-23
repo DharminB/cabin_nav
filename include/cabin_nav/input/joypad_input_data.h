@@ -1,5 +1,4 @@
-#ifndef CABIN_JOYPAD_INPUT_DATA_H
-#define CABIN_JOYPAD_INPUT_DATA_H
+#pragma once
 
 #include <cabin_nav/input/input_data.h>
 #include <cabin_nav/structs/joypad.h>
@@ -60,5 +59,3 @@ class JoypadInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_JOYPAD_INPUT_DATA_H

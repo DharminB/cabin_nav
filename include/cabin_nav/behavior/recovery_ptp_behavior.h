@@ -1,5 +1,4 @@
-#ifndef CABIN_RECOVERY_PTP_behavior_H
-#define CABIN_RECOVERY_PTP_behavior_H
+#pragma once
 
 #include <cabin_nav/behavior/ptp_behavior.h>
 
@@ -41,5 +40,3 @@ class RecoveryPTPBehavior : public PTPBehavior
 };
 
 } // namespace cabin
-
-#endif // CABIN_RECOVERY_PTP_behavior_H

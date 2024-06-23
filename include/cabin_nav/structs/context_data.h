@@ -1,5 +1,4 @@
-#ifndef CABIN_context_data_H
-#define CABIN_context_data_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -42,5 +41,3 @@ struct ContextData
 };
 
 } // namespace cabin
-
-#endif // CABIN_context_data_H

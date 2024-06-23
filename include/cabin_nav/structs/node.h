@@ -1,5 +1,4 @@
-#ifndef CABIN_NODE_H
-#define CABIN_NODE_H
+#pragma once
 
 #include <cabin_nav/structs/lattice_index.h>
 
@@ -35,5 +34,3 @@ struct Node
 };
 
 } // namespace cabin
-
-#endif // CABIN_NODE_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_LOCALISATION_INPUT_DATA_H
-#define CABIN_LOCALISATION_INPUT_DATA_H
+#pragma once
 
 #include <geometry_common/TransformMatrix2D.h>
 
@@ -31,5 +30,3 @@ class LocalisationInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_LOCALISATION_INPUT_DATA_H

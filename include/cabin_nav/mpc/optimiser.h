@@ -1,5 +1,4 @@
-#ifndef CABIN_OPTIMISER_H
-#define CABIN_OPTIMISER_H
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -82,5 +81,3 @@ class Optimiser
 };
 
 } // namespace cabin
-
-#endif // CABIN_OPTIMISER_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_VISUALIZATION_MARKER_OUTPUT_DATA_H
-#define CABIN_VISUALIZATION_MARKER_OUTPUT_DATA_H
+#pragma once
 
 #include <visualization_msgs/Marker.h>
 
@@ -47,4 +46,3 @@ class VisualizationMarkerOutputData : public OutputData
 };
 
 } // namespace cabin
-#endif // CABIN_VISUALIZATION_MARKER_OUTPUT_DATA_H

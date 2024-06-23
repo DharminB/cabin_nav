@@ -1,5 +1,4 @@
-#ifndef CABIN_STATUS_H
-#define CABIN_STATUS_H
+#pragma once
 
 namespace cabin {
 
@@ -27,5 +26,3 @@ inline std::ostream& operator << (std::ostream& out, const Status& status)
 };
 
 } // namespace cabin
-
-#endif // CABIN_STATUS_H

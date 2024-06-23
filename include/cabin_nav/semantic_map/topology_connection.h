@@ -1,5 +1,4 @@
-#ifndef CABIN_TOPOLOGY_CONNECTION_H
-#define CABIN_TOPOLOGY_CONNECTION_H
+#pragma once
 
 #include <string>
 
@@ -26,5 +25,3 @@ class TopologyConnection
 };
 
 } // namespace cabin
-
-#endif // CABIN_TOPOLOGY_CONNECTION_H

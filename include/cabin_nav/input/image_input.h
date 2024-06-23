@@ -1,5 +1,4 @@
-#ifndef CABIN_IMAGE_INPUT_H
-#define CABIN_IMAGE_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -67,5 +66,3 @@ class ImageInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_IMAGE_INPUT_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_LASER_INPUT_H
-#define CABIN_LASER_INPUT_H
+#pragma once
 
 #include <mutex>
 
@@ -57,5 +56,3 @@ class LaserInput : public Input
 };
 
 } // namespace cabin
-
-#endif // CABIN_LASER_INPUT_H

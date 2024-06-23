@@ -1,5 +1,4 @@
-#ifndef CABIN_TRANSITION_MANAGER_H
-#define CABIN_TRANSITION_MANAGER_H
+#pragma once
 
 #include <cabin_nav/behavior/behavior.h>
 #include <cabin_nav/structs/context_data.h>
@@ -25,5 +24,3 @@ class TaskManager
 };
 
 } // namespace cabin
-
-#endif // CABIN_TRANSITION_MANAGER_H

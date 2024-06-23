@@ -1,5 +1,4 @@
-#ifndef CABIN_OPEN_AREA_behavior_H
-#define CABIN_OPEN_AREA_behavior_H
+#pragma once
 
 #include <geometry_common/TransformMatrix2D.h>
 
@@ -67,5 +66,3 @@ class OpenAreaBehavior : public Behavior
 };
 
 } // namespace cabin
-
-#endif // CABIN_OPEN_AREA_behavior_H

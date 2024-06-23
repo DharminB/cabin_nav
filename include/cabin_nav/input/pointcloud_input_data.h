@@ -1,5 +1,4 @@
-#ifndef CABIN_POINTCLOUD_INPUT_DATA_H
-#define CABIN_POINTCLOUD_INPUT_DATA_H
+#pragma once
 
 #include <geometry_common/Point3D.h>
 
@@ -31,5 +30,3 @@ class PointCloudInputData : public InputData
 };
 
 } // namespace cabin
-
-#endif // CABIN_POINTCLOUD_INPUT_DATA_H

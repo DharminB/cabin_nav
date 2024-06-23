@@ -1,5 +1,4 @@
-#ifndef CABIN_trajectory_point_H
-#define CABIN_trajectory_point_H
+#pragma once
 
 #include <geometry_common/Pose2D.h>
 #include <geometry_common/XYTheta.h>
@@ -69,4 +68,3 @@ class TrajectoryPoint
 };
 
 } // namespace cabin
-#endif // CABIN_trajectory_point_H

@@ -1,5 +1,4 @@
-#ifndef CABIN_JUNCTION_behavior_H
-#define CABIN_JUNCTION_behavior_H
+#pragma once
 
 #include <geometry_common/TransformMatrix2D.h>
 
@@ -71,5 +70,3 @@ class JunctionBehavior : public Behavior
 };
 
 } // namespace cabin
-
-#endif // CABIN_JUNCTION_behavior_H
