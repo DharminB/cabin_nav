@@ -50,14 +50,24 @@ bool LaserInput::getData(InputData::Ptr& input_data)
 
     if ( !is_tf_valid_ )
     {
-        if ( !initialiseTransformMat(scan_.header.frame_id) )
+        if ( scan_.header.frame_id.empty() )
         {
-            std::cout << Print::Warn << Print::Time() << "[LaserInput] "
-                      << "Could not lookup transform from " << robot_frame_
-                      << " to " << scan_.header.frame_id
+            std::cout << Print::Warn << Print::Time() << "[LaserInput]["
+                      << topic_ << "] No message received yet."
                       << Print::End << std::endl;
             return false;
         }
+        if ( !initialiseTransformMat(scan_.header.frame_id) )
+        {
+            std::cout << Print::Warn << Print::Time() << "[LaserInput] "
+                      << "Could not lookup transform from \"" << robot_frame_
+                      << "\" to \"" << scan_.header.frame_id << "\"."
+                      << Print::End << std::endl;
+            return false;
+        }
+        std::cout << Print::Success << Print::Time() << "[LaserInput]["
+                  << topic_ << "] Transform lookup successful."
+                  << Print::End << std::endl;
     }
 
     PointCloud3D cloud = GCUtils::convertToPointCloud<Point3D>(scan_);
